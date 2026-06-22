@@ -483,7 +483,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   <div class="ls-logo">KLE-CTIE <span>TBI</span></div>
   <div class="ls-sub">KLE Technological University · Startup Portfolio</div>
   <div class="ls-bar-track"><div class="ls-bar-fill"></div></div>
-  <div class="ls-msg">Loading KLE-CTiE-portfolio data…</div>
+  <div class="ls-msg">Loading KLE-CTIE-portfolio data…</div>
 </div>
 
 <!-- ── Viewer login gate ────────────────────────────────── -->
@@ -922,7 +922,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 <script>
 /* ── Config ──────────────────────────────────────────────── */
 const CONFIG = {
-  GAS_URL       : "https://script.google.com/macros/s/AKfycbzbPk6R4VZsi2iU9TO5yG0WaPku9UjWmQpmcFR34X7j0oXc4dYRKpGejJFqqqRnd32p/exec",  // ← paste your deployed GAS URL
+  GAS_URL       : "YOUR_GAS_WEB_APP_URL_HERE",  // ← paste your deployed GAS URL
   DEMO_MODE     : false,   // set false once GAS is connected
   LOGO_DRIVE_ID : "1iAb5PH3CKSHESopoFGPCuW85Mkb7X26z",     // ← paste KLE-CTIE logo Google Drive file ID here
 };
@@ -1299,32 +1299,21 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadLogo() {
+  // Logo is bundled as ctie-logo.jpg — no Drive ID needed.
+  // If LOGO_DRIVE_ID is set in CONFIG it overrides with the Drive thumbnail.
   const id = CONFIG.LOGO_DRIVE_ID && CONFIG.LOGO_DRIVE_ID.trim();
   if (!id) return;
-  const src = `https://drive.google.com/thumbnail?id=${id}&sz=w80`;
-
-  // Sidebar logo
-  const wrap = document.getElementById("logo-img-wrap");
-  const placeholder = document.getElementById("logo-placeholder");
-  if (wrap) {
+  const src = `https://drive.google.com/thumbnail?id=${id}&sz=w200`;
+  ["logo-img-wrap","vg-logo-wrap"].forEach(wrapId => {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
     const img = document.createElement("img");
     img.alt = "KLE-CTIE Logo";
-    img.style.cssText = "width:38px;height:38px;border-radius:6px;object-fit:contain";
+    img.style.cssText = "width:100%;height:100%;object-fit:contain";
     img.src = src;
-    img.onload  = () => { if (placeholder) placeholder.remove(); wrap.appendChild(img); };
+    img.onload  = () => { wrap.innerHTML = ""; wrap.appendChild(img); };
     img.onerror = () => {};
-  }
-
-  // Login card logo — replace shield SVG with actual logo
-  const vgWrap = document.getElementById("vg-logo-wrap");
-  if (vgWrap) {
-    const img2 = document.createElement("img");
-    img2.alt = "KLE-CTIE Logo";
-    img2.style.cssText = "width:52px;height:52px;border-radius:12px;object-fit:contain";
-    img2.src = src;
-    img2.onload  = () => { vgWrap.innerHTML = ""; vgWrap.appendChild(img2); };
-    img2.onerror = () => {};
-  }
+  });
 }
 
 async function initPortal() {
@@ -1894,12 +1883,16 @@ function renderDpTab(tab) {
             </div>
             ${catFiles.length
               ? catFiles.map(f => `
-                  <div class="file-card" onclick="previewFile('${f.driveId}','${f.fileName}','${f.fileType}')">
-                    <div class="file-icon">${{pdf:"📄",docx:"📝",pptx:"📊",xlsx:"📈",image:"🖼"}[f.fileType]||"📁"}</div>
-                    <div class="file-info">
+                  <div class="file-card">
+                    <div class="file-icon" onclick="previewFile('${f.driveId}','${f.fileName}','${f.fileType}')" style="cursor:pointer">${{pdf:"📄",docx:"📝",doc:"📝",pptx:"📊",ppt:"📊",xlsx:"📈",jpg:"🖼",jpeg:"🖼",png:"🖼"}[f.fileType]||"📁"}</div>
+                    <div class="file-info" onclick="previewFile('${f.driveId}','${f.fileName}','${f.fileType}')" style="cursor:pointer;flex:1">
                       <div class="file-name">${f.fileName}</div>
                       <div class="file-type">${(f.fileType||"").toUpperCase()} · Click to preview</div>
                     </div>
+                    <a href="https://drive.google.com/file/d/${f.driveId}/view" target="_blank"
+                       onclick="event.stopPropagation()"
+                       title="Open in Google Drive"
+                       style="flex-shrink:0;padding:4px 8px;border-radius:6px;background:var(--vl);border:1px solid var(--border);font-size:10px;color:var(--navy);text-decoration:none;white-space:nowrap;align-self:center">↗ Drive</a>
                   </div>`).join("")
               : `<div class="doc-empty">No file linked — upload via Admin Panel</div>`
             }
@@ -1918,20 +1911,49 @@ function renderDpTab(tab) {
 
 function previewFile(driveId, fileName, fileType) {
   const area = document.getElementById("dp-preview-area");
-  let src;
+  const driveViewUrl = `https://drive.google.com/file/d/${driveId}/view`;
+  const openBtn = `<a href="${driveViewUrl}" target="_blank" class="btn btn-sm"
+    style="background:var(--navy);color:#fff;text-decoration:none;padding:5px 12px;border-radius:6px;font-size:11px">
+    ↗ Open in Drive</a>`;
+  const closeBtn = `<button class="btn btn-sm" style="border:1px solid var(--border)"
+    onclick="document.getElementById('dp-preview-area').innerHTML=''">✕ Close</button>`;
+  const header = `<div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;gap:8px">
+    <span style="font-weight:600;font-size:12px;color:var(--navy);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fileName}</span>
+    <div style="display:flex;gap:6px;flex-shrink:0">${openBtn}${closeBtn}</div>
+  </div>`;
+
+  const imgTypes = ["jpg","jpeg","png","gif","webp","svg"];
   if (fileType === "pdf") {
-    src = `https://drive.google.com/file/d/${driveId}/preview`;
-  } else if (["docx","pptx","xlsx"].includes(fileType)) {
-    src = `https://docs.google.com/viewer?url=https://drive.google.com/uc?id=${driveId}&embedded=true`;
+    area.innerHTML = header +
+      `<iframe src="https://drive.google.com/file/d/${driveId}/preview"
+        style="width:100%;height:480px;border:1px solid var(--border);border-radius:8px" allowfullscreen></iframe>`;
+  } else if (imgTypes.includes(fileType)) {
+    area.innerHTML = header +
+      `<div style="text-align:center;padding:12px;background:var(--vl);border-radius:8px;border:1px solid var(--border)">
+        <img src="https://drive.google.com/uc?export=view&id=${driveId}"
+          style="max-width:100%;max-height:460px;border-radius:6px;object-fit:contain"
+          onerror="this.parentElement.innerHTML='<p style=color:var(--muted)>Image could not load — open in Drive to view.</p>'">
+      </div>`;
+  } else if (["docx","doc","pptx","ppt","xlsx","xls"].includes(fileType)) {
+    area.innerHTML = header +
+      `<div style="padding:28px 20px;background:var(--vl);border-radius:8px;border:1px solid var(--border);text-align:center">
+        <div style="font-size:32px;margin-bottom:10px">${{docx:"📝",doc:"📝",pptx:"📊",ppt:"📊",xlsx:"📈",xls:"📈"}[fileType]||"📁"}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px">${fileName}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
+          ${fileType.toUpperCase()} files cannot be previewed inline.<br>Open in Google Drive to view or download.
+        </div>
+        <a href="${driveViewUrl}" target="_blank"
+          style="background:var(--navy);color:#fff;text-decoration:none;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600">
+          ↗ Open in Google Drive
+        </a>
+      </div>`;
   } else {
-    src = `https://drive.google.com/uc?id=${driveId}`;
+    area.innerHTML = header +
+      `<div style="padding:20px;background:var(--vl);border-radius:8px;text-align:center;font-size:12px;color:var(--muted)">
+        Preview not available for this file type.
+        <a href="${driveViewUrl}" target="_blank" style="color:var(--blue);margin-left:6px">Open in Drive ↗</a>
+      </div>`;
   }
-  area.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px">
-      <span style="font-weight:600;font-size:12px;color:var(--navy)">${fileName}</span>
-      <button class="btn btn-sm" style="border:1px solid var(--border)" onclick="document.getElementById('dp-preview-area').innerHTML=''">✕</button>
-    </div>
-    <iframe src="${src}" style="width:100%;height:420px;border:1px solid var(--border);border-radius:8px" allowfullscreen></iframe>`;
 }
 
 function closeDetail() {
