@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHC EE Lab — Startup Portfolio</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & base ─────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0d1b3e;--navy-mid:#1a2f5e;--blue:#2E75B6;
+  --gold:#c9a84c;--gold-l:#e8c97a;--gold-pale:#f5e9c8;
+  --lb:#BDD7EE;--vl:#DEEAF1;
+  --cream:#faf8f3;--soft:#f0ece0;
+  --green:#E2EFDA;--orange:#FCE4D6;--red:#FFE0E0;
+  --text:#0d1b3e;--muted:#6b7a99;--border:rgba(13,27,62,0.10);
+  --bg:#f0ece0;--card:#ffffff;--sidebar-w:228px;
+  --shadow:0 8px 32px rgba(13,27,62,0.10);
+  /* chart accent palette */
+  --c1:#2471a3;--c2:#1b7a3e;--c3:#c9a84c;--c4:#7b3f9e;
+  --c5:#c0392b;--c6:#0e7490;--c7:#854f0b;--c8:#be185d;
+}
+body{font-family:'Outfit',sans-serif;background:var(--soft);color:var(--text);display:flex;min-height:100vh;overflow:hidden}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+
+/* ── Loading screen ───────────────────────────────────────── */
+#loading-screen{
+  position:fixed;inset:0;background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:2000;transition:opacity .5s ease
+}
+#loading-screen.hidden{opacity:0;pointer-events:none}
+.ls-logo{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;color:#fff;margin-bottom:4px}
+.ls-logo span{color:var(--gold);font-style:italic}
+.ls-sub{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:.1em;margin-bottom:2.5rem;font-style:italic}
+.ls-bar-track{width:200px;height:3px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.ls-bar-fill{height:100%;background:linear-gradient(to right,var(--gold),var(--gold-l));border-radius:3px;animation:lsPulse 1.6s ease-in-out infinite}
+@keyframes lsPulse{0%{width:0%}60%{width:85%}100%{width:100%}}
+.ls-msg{font-size:11px;color:rgba(255,255,255,.25);margin-top:1rem;letter-spacing:.06em}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+#sidebar{
+  width:var(--sidebar-w);background:var(--navy);display:flex;
+  flex-direction:column;height:100vh;position:fixed;top:0;left:0;z-index:100;
+  transition:transform .25s ease;
+  background-image:linear-gradient(rgba(201,168,76,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.04) 1px,transparent 1px);
+  background-size:40px 40px
+}
+.logo{padding:22px 18px 18px;border-bottom:1px solid rgba(201,168,76,.15)}
+.logo-eyebrow{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;font-family:'Outfit',sans-serif}
+.logo-name{font-family:'Cormorant Garamond',serif;color:#fff;font-size:22px;font-weight:600;line-height:1.1}
+.logo-name span{color:var(--gold);font-style:italic}
+.logo-sub{color:rgba(255,255,255,.35);font-size:10px;margin-top:3px;letter-spacing:.04em}
+.gold-rule{height:2px;background:linear-gradient(to right,var(--gold),var(--gold-l),transparent);border-radius:2px;margin-top:12px;max-width:120px}
+.nav{padding:14px 10px;flex:1;overflow-y:auto}
+.nav-section{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);padding:12px 8px 4px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;
+  border-radius:8px;color:rgba(255,255,255,.6);font-size:13px;
+  cursor:pointer;margin-bottom:2px;transition:all .15s;user-select:none
+}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.nav-item:hover{background:rgba(201,168,76,.12);color:var(--gold-l)}
+.nav-item:hover svg{opacity:1}
+.nav-item.active{background:rgba(201,168,76,.18);color:var(--gold);border-left:2px solid var(--gold)}
+.nav-item.active svg{opacity:1}
+.sidebar-footer{padding:10px;border-top:1px solid rgba(201,168,76,.12)}
+
+/* ── Main ─────────────────────────────────────────────────── */
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── Topbar ──────────────────────────────────────────────── */
+#topbar{
+  background:var(--navy);border-bottom:1px solid rgba(201,168,76,.15);
+  padding:0 24px;height:54px;display:flex;align-items:center;
+  justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50
+}
+.topbar-left{display:flex;align-items:center;gap:10px}
+#page-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#fff;font-style:italic}
+.breadcrumb{font-size:11px;color:rgba(255,255,255,.3);font-family:'JetBrains Mono',monospace}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-badge{background:rgba(201,168,76,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:20px;font-weight:500;border:1px solid rgba(201,168,76,.3);font-family:'JetBrains Mono',monospace}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#2ecc71;animation:livePulse 2s ease infinite;display:inline-block;margin-right:5px}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.search-wrap{position:relative}
+.search-wrap input{
+  border:1px solid rgba(201,168,76,.25);border-radius:8px;padding:7px 12px 7px 34px;
+  font-size:13px;width:220px;outline:none;background:rgba(255,255,255,.08);color:#fff;
+  font-family:'Outfit',sans-serif
+}
+.search-wrap input::placeholder{color:rgba(255,255,255,.3)}
+.search-wrap input:focus{border-color:var(--gold);background:rgba(255,255,255,.12)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);width:16px;height:16px}
+#search-results{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);
+  border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);
+  max-height:300px;overflow-y:auto;z-index:200;display:none
+}
+.sr-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px}
+.sr-item:last-child{border-bottom:none}
+.sr-item:hover{background:var(--soft)}
+.sr-item .sr-name{font-weight:600;color:var(--navy)}
+.sr-item .sr-meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── Content area ─────────────────────────────────────────── */
+#content{flex:1;overflow-y:auto;padding:24px}
+.page{display:none}
+.page.active{display:block}
+
+/* ── Section header (numbered) ───────────────────────────── */
+.sec-label{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.06em}
+.sec-line{flex:none;width:40px;height:1px;background:rgba(201,168,76,.3)}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);margin-bottom:14px}
+.sec-title em{color:var(--gold);font-style:italic}
+
+/* ── Filter bar ──────────────────────────────────────────── */
+.filter-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{
+  border:1px solid var(--border);border-radius:8px;padding:7px 10px;
+  font-size:12px;color:var(--text);background:var(--card);outline:none;font-family:'Outfit',sans-serif
+}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--gold)}
+.filter-count{font-size:12px;color:var(--muted);margin-left:auto;font-family:'JetBrains Mono',monospace}
+
+/* ── KPI tiles ───────────────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px 16px;box-shadow:var(--shadow);border-top:3px solid var(--gold);
+  transition:transform .2s
+}
+.kpi-card:hover{transform:translateY(-2px)}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:var(--navy);line-height:1}
+.kpi-lbl{font-size:11px;color:var(--muted);margin-top:5px;font-weight:500;letter-spacing:.04em}
+.kpi-sub{font-size:10px;margin-top:5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.kpi-card.kc-gold {border-top-color:var(--gold)}
+.kpi-card.kc-green{border-top-color:#1b7a3e}
+.kpi-card.kc-teal {border-top-color:#0e7490}
+.kpi-card.kc-purple{border-top-color:#7b3f9e}
+.kpi-card.kc-pink {border-top-color:#be185d}
+.kpi-card.kc-blue {border-top-color:var(--blue)}
+.kpi-card.kc-amber{border-top-color:#854f0b}
+.kpi-card.kc-red  {border-top-color:#c0392b}
+
+/* ── Chart grid ──────────────────────────────────────────── */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.chart-title::before{content:'';display:inline-block;width:3px;height:12px;background:var(--gold);border-radius:2px;flex-shrink:0}
+.chart-wrap{position:relative;height:220px}
+
+/* ── Startup cards ───────────────────────────────────────── */
+.startup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.startup-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:16px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);
+  border-top:3px solid transparent;position:relative;overflow:hidden
+}
+.startup-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,var(--gold),var(--gold-l));opacity:0;transition:opacity .2s}
+.startup-card:hover::before{opacity:1}
+.startup-card:hover{border-color:rgba(201,168,76,.3);box-shadow:0 8px 24px rgba(13,27,62,.12);transform:translateY(-2px)}
+.sc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.sc-name{font-size:13px;font-weight:600;color:var(--navy);line-height:1.3}
+.sc-band{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;flex-shrink:0;margin-left:6px;margin-top:1px}
+.band-high{background:#e8f5e9;color:#1b7a3e}
+.band-mid{background:var(--gold-pale);color:#854F0B}
+.band-low{background:#fce8e8;color:#c0392b}
+.sc-sector{font-size:11px;color:var(--muted);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress-track{height:5px;background:rgba(13,27,62,.07);border-radius:20px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;border-radius:20px;transition:width .5s ease}
+.fill-high{background:linear-gradient(90deg,#1b7a3e,#2ecc71)}
+.fill-mid{background:linear-gradient(90deg,var(--gold),var(--gold-l))}
+.fill-low{background:linear-gradient(90deg,#c0392b,#e74c3c)}
+.sc-chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;border:none}
+.chip-blue{background:var(--vl);color:var(--navy)}
+.chip-scheme{background:var(--gold-pale);color:var(--navy)}
+.chip-pct{background:var(--soft);border:1px solid var(--border);color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* ── Startup detail panel ────────────────────────────────── */
+#detail-panel{
+  position:fixed;top:0;right:-100%;width:520px;max-width:95vw;height:100vh;
+  background:var(--card);box-shadow:-8px 0 40px rgba(13,27,62,.18);z-index:300;
+  transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden
+}
+#detail-panel.open{right:0}
+.dp-header{
+  background:var(--navy);padding:22px 20px 18px;flex-shrink:0;
+  background-image:linear-gradient(rgba(201,168,76,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.05) 1px,transparent 1px);
+  background-size:36px 36px
+}
+.dp-close{color:rgba(255,255,255,.6);float:right;font-size:20px;cursor:pointer;background:none;border:none;line-height:1;transition:color .15s}
+.dp-close:hover{color:var(--gold)}
+.dp-name{font-family:'Cormorant Garamond',serif;color:#fff;font-size:20px;font-weight:600;margin-bottom:2px}
+.dp-sector{color:var(--gold);font-size:11px;letter-spacing:.05em}
+.dp-progress{margin-top:14px}
+.dp-progress-track{height:5px;background:rgba(255,255,255,.15);border-radius:20px;overflow:hidden}
+.dp-progress-fill{height:100%;background:linear-gradient(to right,var(--gold),var(--gold-l));border-radius:20px;transition:width .6s ease}
+.dp-pct{color:rgba(255,255,255,.4);font-size:10px;margin-top:5px;font-family:'JetBrains Mono',monospace}
+.dp-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--soft);flex-shrink:0;overflow-x:auto}
+.dp-tab{padding:11px 14px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.dp-tab.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:600}
+.dp-tab:hover:not(.active){color:var(--navy);border-bottom-color:rgba(201,168,76,.3)}
+.dp-body{flex:1;overflow-y:auto;padding:20px}
+.dp-section{margin-bottom:22px}
+.dp-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(201,168,76,.2)}
+.dp-field{display:grid;grid-template-columns:140px 1fr;gap:8px;margin-bottom:8px;font-size:12px}
+.dp-label{color:var(--muted);font-weight:500;padding-top:1px}
+.dp-value{color:var(--text);word-break:break-word}
+.dp-value.empty{color:var(--muted);font-style:italic}
+.milestone-row{display:grid;grid-template-columns:90px 1fr;gap:10px;margin-bottom:10px;font-size:12px}
+.ms-quarter{font-weight:600;color:var(--navy)}
+.ms-val{color:var(--text)}
+.ms-val.empty{color:var(--muted);font-style:italic}
+.file-card{
+  display:flex;align-items:center;gap:10px;padding:10px;
+  border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer
+}
+.file-card:hover{border-color:var(--blue);background:var(--vl)}
+.file-icon{width:36px;height:36px;background:var(--vl);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.file-info .file-name{font-size:12px;font-weight:500;color:var(--navy)}
+.file-info .file-type{font-size:10px;color:var(--muted);text-transform:uppercase}
+.iframe-preview{width:100%;height:420px;border:1px solid var(--border);border-radius:8px;margin-top:10px}
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:290;
+  backdrop-filter:blur(2px)
+}
+.overlay.show{display:block}
+
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.dot-high{background:#3B6D11}.dot-mid{background:#854F0B}.dot-low{background:#A32D2D}
+.file-upload-area{
+  border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;
+  cursor:pointer;margin-bottom:16px;transition:all .15s
+}
+.file-upload-area:hover{border-color:var(--blue);background:var(--vl)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty-state svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
+.empty-state p{font-size:13px}
+
+/* ── Viewer / login gate ─────────────────────────────────── */
+#viewer-gate{
+  position:fixed;inset:0;
+  background:var(--navy);
+  background-image:linear-gradient(rgba(201,168,76,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.05) 1px,transparent 1px);
+  background-size:50px 50px;
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+}
+.vg-card{
+  background:rgba(255,255,255,.97);border-radius:20px;padding:44px 40px;width:390px;max-width:95vw;
+  box-shadow:0 40px 100px rgba(0,0,0,.4);text-align:center;position:relative
+}
+.vg-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(to right,var(--gold),var(--gold-l),var(--gold));border-radius:20px 20px 0 0}
+.vg-logo{display:inline-flex;align-items:center;justify-content:center;
+  width:68px;height:68px;background:var(--navy);border-radius:16px;margin-bottom:18px;
+  box-shadow:0 8px 24px rgba(13,27,62,.3)}
+.vg-eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;font-family:'JetBrains Mono',monospace}
+.vg-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.vg-sub{font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.vg-label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);text-align:left;margin-bottom:6px}
+.vg-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;outline:none;margin-bottom:14px;transition:border-color .15s;font-family:'Outfit',sans-serif;color:var(--navy)}
+.vg-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.vg-btn{width:100%;padding:13px;background:var(--navy);color:var(--gold);border:none;
+  border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;
+  font-family:'Outfit',sans-serif;letter-spacing:.04em}
+.vg-btn:hover{background:var(--navy-mid);transform:translateY(-1px);box-shadow:0 8px 20px rgba(13,27,62,.3)}
+.vg-err{color:#c0392b;font-size:12px;margin-top:8px;display:none}
+.vg-divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.vg-hint{font-size:11px;color:var(--muted);line-height:1.6}
+
+/* ── Lifecycle status badges ─────────────────────────────── */
+.lc-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;
+  padding:3px 9px;border-radius:20px;letter-spacing:.04em}
+.lc-active   {background:#e8f5e9;color:#1b7a3e}
+.lc-graduated{background:var(--gold-pale);color:#7a5500}
+.lc-dormant  {background:#fff8e1;color:#854f0b}
+.lc-exited   {background:#fce8e8;color:#c0392b}
+.lc-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.lc-active .lc-dot   {background:#1b7a3e}
+.lc-graduated .lc-dot{background:#c9a84c}
+.lc-dormant .lc-dot  {background:#854f0b}
+.lc-exited .lc-dot   {background:#c0392b}
+
+/* ── UC Compliance panel ─────────────────────────────────── */
+.uc-table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;box-shadow:var(--shadow);margin-bottom:18px}
+.uc-table-hdr{background:var(--navy);padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.uc-table-hdr span{color:#fff;font-size:12px;font-weight:600;letter-spacing:.04em}
+.uc-badge-count{background:rgba(201,168,76,.25);color:var(--gold);font-size:11px;
+  padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace}
+.uc-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 80px;gap:10px;
+  padding:10px 18px;align-items:center;border-bottom:1px solid var(--border);font-size:12px}
+.uc-row:last-child{border-bottom:none}
+.uc-row:hover{background:var(--soft)}
+.uc-row.header{background:var(--soft);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.uc-gap-pill{text-align:center;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.uc-red   {background:#fce8e8;color:#c0392b}
+.uc-amber {background:#fff8e1;color:#854f0b}
+.uc-green {background:#e8f5e9;color:#1b7a3e}
+
+/* ── Contact directory ───────────────────────────────────── */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.contact-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px;box-shadow:var(--shadow);transition:transform .2s;
+  border-top:3px solid transparent
+}
+.contact-card:hover{transform:translateY(-2px);border-top-color:var(--gold)}
+.contact-avatar{
+  width:44px;height:44px;border-radius:50%;background:var(--navy);
+  color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex-shrink:0
+}
+.contact-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.contact-startup{font-size:11px;color:var(--muted);margin-bottom:10px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin-bottom:5px}
+.contact-row a{color:var(--blue);text-decoration:none}
+.contact-row a:hover{color:var(--navy);text-decoration:underline}
+.contact-row svg{width:13px;height:13px;flex-shrink:0;opacity:.5}
+
+/* ── Print / Export ──────────────────────────────────────── */
+.export-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;
+  background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);
+  cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif
+}
+.export-btn:hover{background:rgba(201,168,76,.25);color:var(--navy)}
+.export-btn svg{width:13px;height:13px}
+
+/* ── Incubation age badge ────────────────────────────────── */
+.age-badge{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;
+  background:var(--soft);border:1px solid var(--border);padding:2px 7px;border-radius:20px;display:inline-block}
+.age-badge.old{color:#c0392b;background:#fce8e8;border-color:rgba(192,57,43,.2)}
+
+/* ── Mobile hamburger ────────────────────────────────────── */
+#hamburger{display:none;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);cursor:pointer}
+#hamburger span{display:block;width:18px;height:2px;background:#fff;
+  margin:3px auto;border-radius:2px;transition:.2s}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%);z-index:110}
+  #sidebar.mob-open{transform:translateX(0)}
+  #sidebar-overlay.show{display:block}
+  #main{margin-left:0}
+  #hamburger{display:flex}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)!important}
+  .chart-grid{grid-template-columns:1fr!important}
+  #kpi-grid{grid-template-columns:repeat(2,1fr)!important}
+}
+
+/* ── Print stylesheet ────────────────────────────────────── */
+@media print{
+  body{display:block;background:#fff!important;font-family:'Outfit',sans-serif}
+  #sidebar,#topbar,#overlay,.dp-tabs,.export-btn,#viewer-gate,#loading-screen,
+  .sidebar-footer,#detail-panel .dp-close{display:none!important}
+  #main{margin-left:0}
+  #content{overflow:visible;height:auto;padding:0}
+  .page{display:none!important}
+  #print-target{display:block!important;padding:24px}
+  .print-header{margin-bottom:24px;border-bottom:2px solid var(--gold);padding-bottom:12px}
+  .print-header h1{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy)}
+  .print-header p{font-size:12px;color:var(--muted)}
+  .dp-section-title{color:var(--navy)!important}
+  canvas{max-width:600px!important}
+}
+#print-target{display:none}
+
+/* ── Doc category section ────────────────────────────────── */
+.doc-category{margin-bottom:18px}
+.doc-cat-hdr{
+  display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--blue);
+  padding-bottom:5px;border-bottom:1px solid var(--border);margin-bottom:8px
+}
+.doc-cat-icon{font-size:16px}
+.doc-cat-count{margin-left:auto;background:var(--vl);color:var(--navy);font-size:10px;
+  padding:2px 7px;border-radius:20px;font-weight:600}
+.doc-empty{font-size:12px;color:var(--muted);font-style:italic;padding:6px 0}
+
+/* ── Table ───────────────────────────────────────────────── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{background:var(--navy);color:rgba(255,255,255,.65);padding:10px 12px;text-align:left;font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.data-table tr:nth-child(even) td{background:var(--soft)}
+.data-table tr:hover td{background:var(--gold-pale)}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;overflow-x:auto;box-shadow:var(--shadow)}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:'Outfit',sans-serif}
+.btn-primary{background:var(--navy);color:var(--gold)}
+.btn-primary:hover{background:var(--navy-mid);transform:translateY(-1px)}
+.btn-danger{background:#fee2e2;color:#991b1b}
+.btn-danger:hover{background:#fecaca}
+.btn-gold{background:var(--gold);color:var(--navy);font-weight:700}
+.btn-gold:hover{background:var(--gold-l)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* ── Admin panel ─────────────────────────────────────────── */
+.admin-gate{max-width:400px;margin:60px auto;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;box-shadow:var(--shadow)}
+.admin-gate h2{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--navy);margin-bottom:8px}
+.admin-gate p{font-size:13px;color:var(--muted);margin-bottom:24px}
+.admin-gate input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;margin-bottom:12px;outline:none;font-family:'Outfit',sans-serif}
+.admin-gate input:focus{border-color:var(--gold)}
+.admin-panel{max-width:760px;margin:0 auto}
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.admin-header h2{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.form-group select,.form-group input,.form-group textarea{
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:'Outfit',sans-serif;color:var(--text);outline:none;background:var(--card)
+}
+.form-group select:focus,.form-group input:focus,.form-group textarea:focus{border-color:var(--gold)}
+.form-group textarea{min-height:90px;resize:vertical}
+.admin-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-editor{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.fe-label{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.fe-input{width:100%;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;font-family:'Outfit',sans-serif;outline:none}
+.fe-input:focus{border-color:var(--gold)}
+.fe-save{margin-top:8px;font-size:11px;padding:5px 12px;background:var(--navy);color:var(--gold);border:none;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif}
+.fe-save:hover{background:var(--navy-mid)}
+.admin-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);grid-column:1/-1;margin-top:8px;padding-bottom:4px;border-bottom:1px solid rgba(201,168,76,.2)}
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;
+  padding:12px 18px 12px 14px;border-radius:10px;font-size:13px;z-index:500;
+  opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;
+  border-left:3px solid var(--gold);max-width:340px;line-height:1.45;
+  display:flex;align-items:flex-start;gap:10px
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:#7f1d1d;border-left-color:#fca5a5}
+.toast.warn{background:#78350f;border-left-color:#fcd34d}
+.toast-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.toast-body{flex:1;min-width:0}
+.toast-title{font-weight:600;font-size:12px;letter-spacing:.03em;margin-bottom:2px}
+.toast-msg{font-size:12px;opacity:.85;word-break:break-word}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.dot-high{background:#1b7a3e}.dot-mid{background:#854F0B}.dot-low{background:#c0392b}
+.file-upload-area{
+  border:2px dashed rgba(201,168,76,.3);border-radius:10px;padding:24px;text-align:center;
+  cursor:pointer;margin-bottom:16px;transition:all .15s
+}
+.file-upload-area:hover{border-color:var(--gold);background:var(--gold-pale)}
+</style>
+</head>
+<body>
+
+<!-- ── Loading screen ───────────────────────────────────── -->
+<div id="loading-screen" style="display:none">
+  <div class="ls-logo">RHC <span>EE Lab</span></div>
+  <div class="ls-sub">KLE-CTiE · Startup Portfolio</div>
+  <div class="ls-bar-track"><div class="ls-bar-fill"></div></div>
+  <div class="ls-msg">Loading portfolio data…</div>
+</div>
+
+<!-- ── Viewer login gate ────────────────────────────────── -->
+<div id="viewer-gate">
+  <div class="vg-card">
+    <div class="vg-logo">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <div class="vg-eyebrow">KLE-CTiE · EE Lab · May 2026</div>
+    <div class="vg-title">RHC Portfolio</div>
+    <div class="vg-sub">Startup Health Monitor<br><span style="font-size:11px;color:var(--muted)">Restricted access — authorised personnel only</span></div>
+    <label class="vg-label">Access Password</label>
+    <input class="vg-input" type="password" id="viewer-pw" placeholder="Enter portal password"
+      onkeydown="if(event.key==='Enter')viewerLogin()">
+    <button class="vg-btn" onclick="viewerLogin()">Enter Portal →</button>
+    <div class="vg-err" id="vg-err">Incorrect password. Please try again.</div>
+    <hr class="vg-divider">
+    <div class="vg-hint">For admin access use the Admin Panel inside the portal.<br>Contact incubation manager for credentials.</div>
+  </div>
+</div>
+
+<!-- ── Sidebar overlay (mobile) ─────────────────────────── -->
+<div id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- ── Print target ─────────────────────────────────────── -->
+<div id="print-target"></div>
+
+<!-- ── Sidebar ──────────────────────────────────────────── -->
+<nav id="sidebar" aria-label="Main navigation">
+  <div class="logo">
+    <div class="logo-eyebrow">KLE-CTiE · EE Lab</div>
+    <div class="logo-name">RHC <span>Portfolio</span></div>
+    <div class="logo-sub">Startup Health Monitor</div>
+    <div class="gold-rule"></div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-page="portfolio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Portfolio
+    </div>
+    <div class="nav-item" data-page="analytics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Analytics
+    </div>
+    <div class="nav-section">Documents</div>
+    <div class="nav-item" data-page="files">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      File Viewer
+    </div>
+    <div class="nav-item" data-page="milestones">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Milestones
+    </div>
+    <div class="nav-item" data-page="contacts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Contacts
+    </div>
+    <div class="nav-section">Admin</div>
+    <div class="nav-item" data-page="admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Admin Panel
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="nav-item" id="reload-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.65"/></svg>
+      Refresh data
+    </div>
+    <div class="nav-item" id="viewer-logout-btn" onclick="viewerLogout()" style="color:rgba(255,100,100,.7)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </div>
+  </div>
+</nav>
+
+<!-- ── Main ─────────────────────────────────────────────── -->
+<div id="main">
+  <header id="topbar">
+    <div class="topbar-left">
+      <div id="hamburger" onclick="toggleMobileSidebar()">
+        <span></span><span></span><span></span>
+      </div>
+      <span id="page-title">Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="global-search" placeholder="Search startups…" autocomplete="off">
+        <div id="search-results"></div>
+      </div>
+      <div class="topbar-badge"><span class="live-dot"></span>May 2026 Audit</div>
+      <div class="avatar">RC</div>
+    </div>
+  </header>
+
+  <div id="content">
+
+    <!-- ── DASHBOARD PAGE ── -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- Row 1: Portfolio health KPIs -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:18px" id="kpi-grid">
+        <div class="kpi-card kc-gold">
+          <div class="kpi-val" id="k-total">—</div>
+          <div class="kpi-lbl">Startups in portfolio</div>
+          <div class="kpi-sub" id="k-total-sub"></div>
+        </div>
+        <div class="kpi-card kc-green">
+          <div class="kpi-val" id="k-rev">—</div>
+          <div class="kpi-lbl">Revenue generated</div>
+          <div class="kpi-sub" id="k-rev-sub"></div>
+        </div>
+        <div class="kpi-card kc-teal">
+          <div class="kpi-val" id="k-emp">—</div>
+          <div class="kpi-lbl">Jobs created</div>
+          <div class="kpi-sub">Across all startups</div>
+        </div>
+        <div class="kpi-card kc-purple">
+          <div class="kpi-val" id="k-disb">—</div>
+          <div class="kpi-lbl">Funding disbursed</div>
+          <div class="kpi-sub" id="k-disb-sub"></div>
+        </div>
+        <div class="kpi-card kc-blue">
+          <div class="kpi-val" id="k-stage">—</div>
+          <div class="kpi-lbl">Revenue-generating</div>
+          <div class="kpi-sub" id="k-stage-sub"></div>
+        </div>
+      </div>
+
+      <!-- Row 2: Funding pipeline + Stage funnel -->
+      <div class="chart-grid" style="margin-bottom:18px">
+        <div class="chart-card">
+          <div class="chart-title">Funding Pipeline — Sanctioned · Disbursed · UC filed (₹ Lakhs)</div>
+          <div class="chart-wrap" style="height:240px"><canvas id="chart-funding"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Stage Progression — startups per TRL stage</div>
+          <div class="chart-wrap" style="height:240px"><canvas id="chart-stage"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Row 3: Revenue by sector (full width) -->
+      <div class="chart-card" style="margin-bottom:18px">
+        <div class="chart-title">Revenue by Sector (₹ Lakhs) — current portfolio output</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chart-secrev"></canvas></div>
+      </div>
+
+      <!-- Row 4: Quick-stat tiles + sector doughnut -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1.5fr;gap:14px;margin-bottom:16px">
+        <div class="kpi-card kc-pink" style="padding:15px">
+          <div class="kpi-val" style="font-size:32px" id="k-women">—</div>
+          <div class="kpi-lbl">Women-led</div>
+          <div class="kpi-sub" id="k-women-sub"></div>
+        </div>
+        <div class="kpi-card kc-blue" style="padding:15px">
+          <div class="kpi-val" style="font-size:32px" id="k-dpiit">—</div>
+          <div class="kpi-lbl">DPIIT registered</div>
+          <div class="kpi-sub" id="k-dpiit-sub"></div>
+        </div>
+        <div class="kpi-card kc-amber" style="padding:15px">
+          <div class="kpi-val" style="font-size:32px" id="k-patents">—</div>
+          <div class="kpi-lbl">Patents filed</div>
+          <div class="kpi-sub">Innovations protected</div>
+        </div>
+        <div class="kpi-card kc-teal" style="padding:15px">
+          <div class="kpi-val" style="font-size:32px" id="k-uc">—</div>
+          <div class="kpi-lbl">UC filed</div>
+          <div class="kpi-sub" id="k-uc-sub"></div>
+        </div>
+        <div class="chart-card" style="padding:16px">
+          <div class="chart-title">Sector Distribution</div>
+          <div class="chart-wrap" style="height:150px"><canvas id="chart-sector"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Row 5: UC Compliance tracker -->
+      <div class="uc-table-wrap">
+        <div class="uc-table-hdr">
+          <span>⚠ UC Compliance Tracker — Disbursed vs UC Filed</span>
+          <span class="uc-badge-count" id="uc-gap-count">—</span>
+        </div>
+        <div class="uc-row header">
+          <div>Startup</div><div>Disbursed</div><div>UC Filed</div><div>Pending</div><div>Status</div>
+        </div>
+        <div id="uc-rows">
+          <div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Row 6: Lifecycle breakdown -->
+      <div class="chart-grid" style="margin-bottom:18px">
+        <div class="chart-card">
+          <div class="chart-title">Portfolio Lifecycle Status</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px" id="lc-breakdown"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Incubation Age Distribution</div>
+          <div class="chart-wrap" style="height:180px"><canvas id="chart-age"></canvas></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── PORTFOLIO PAGE ── -->
+    <div class="page" id="page-portfolio">
+      <div class="filter-bar">
+        <select id="f-sector"><option value="">All sectors</option></select>
+        <select id="f-scheme"><option value="">All schemes</option></select>
+        <select id="f-status"><option value="">All status</option><option value="Active">Active</option><option value="Graduated">Graduated</option><option value="Dormant">Dormant</option><option value="Exited">Exited</option></select>
+        <select id="f-band"><option value="">All coverage</option><option value="high">High ≥75%</option><option value="mid">Mid 40–74%</option><option value="low">Low &lt;40%</option></select>
+        <input type="text" id="f-search" placeholder="Filter by name…" style="width:160px">
+        <span class="filter-count" id="filter-count"></span>
+        <button class="export-btn" onclick="exportPortfolioCSV()" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="startup-grid" id="startup-grid">
+        <div class="empty-state" style="grid-column:1/-1"><div class="spinner"></div><p style="margin-top:12px">Loading portfolio…</p></div>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS PAGE ── -->
+    <div class="page" id="page-analytics">
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-title">Fill rate by startup (top 30)</div>
+          <div class="chart-wrap" style="height:320px"><canvas id="chart-fillrate"></canvas></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="analytics-table">
+          <thead><tr><th>#</th><th>Startup Name</th><th>Sector</th><th>Scheme</th><th>Stage</th><th>Employment</th><th>Fill %</th><th>Band</th></tr></thead>
+          <tbody id="analytics-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── FILE VIEWER PAGE ── -->
+    <div class="page" id="page-files">
+      <div class="filter-bar">
+        <select id="fv-startup"><option value="">Select startup…</option></select>
+        <select id="fv-type"><option value="">All types</option><option value="pdf">PDF</option><option value="docx">DOCX</option><option value="pptx">PPTX</option></select>
+        <span class="filter-count" id="fv-count"></span>
+      </div>
+      <div id="file-list"></div>
+      <div id="file-preview-container" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span id="preview-filename" style="font-weight:600;font-size:13px;color:var(--navy)"></span>
+          <button class="btn btn-sm" id="close-preview" style="border:1px solid var(--border)">✕ Close preview</button>
+        </div>
+        <iframe id="file-iframe" class="iframe-preview" allow="fullscreen"></iframe>
+      </div>
+    </div>
+
+    <!-- ── MILESTONES PAGE ── -->
+    <div class="page" id="page-milestones">
+      <div style="overflow-x:auto">
+        <table class="data-table" id="milestone-table" style="min-width:900px">
+          <thead>
+            <tr>
+              <th style="min-width:160px">Startup</th>
+              <th>Apr–Jun 24</th><th>Jul–Sep 24</th><th>Oct–Dec 24</th>
+              <th>Jan–Mar 25</th><th>Apr–Jun 25</th><th>Jul–Sep 25</th>
+              <th>Oct–Dec 25</th><th>Jan–Mar 26</th><th>Apr–Jun 26</th>
+            </tr>
+          </thead>
+          <tbody id="milestone-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CONTACTS PAGE ── -->
+    <div class="page" id="page-contacts">
+      <div class="filter-bar">
+        <input type="text" id="contact-search" placeholder="Search by name or startup…" style="width:280px" oninput="filterContacts()">
+        <select id="contact-scheme" onchange="filterContacts()"><option value="">All schemes</option></select>
+        <select id="contact-lc" onchange="filterContacts()">
+          <option value="">All status</option>
+          <option value="Active">Active</option>
+          <option value="Graduated">Graduated</option>
+          <option value="Dormant">Dormant</option>
+          <option value="Exited">Exited</option>
+        </select>
+        <span class="filter-count" id="contact-count"></span>
+        <button class="export-btn" onclick="exportContacts()" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="contact-grid" id="contact-grid">
+        <div class="empty-state" style="grid-column:1/-1"><div class="spinner"></div><p style="margin-top:12px">Loading contacts…</p></div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN PAGE ── -->
+    <div class="page" id="page-admin">
+      <!-- Password gate -->
+      <div class="admin-gate" id="admin-gate">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="1.5" style="margin-bottom:12px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <h2>Admin Access</h2>
+        <p>Enter your admin password to manage startup data</p>
+        <input type="password" id="admin-pw" placeholder="Admin password" onkeydown="if(event.key==='Enter')adminLogin()">
+        <button class="btn btn-primary" style="width:100%" onclick="adminLogin()">Login →</button>
+      </div>
+
+      <!-- Admin panel (hidden until authenticated) -->
+      <div class="admin-panel" id="admin-panel" style="display:none">
+        <div class="admin-header">
+          <h2>Admin Panel</h2>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm" style="border:1px solid var(--border)" onclick="rebuildMaster()">↺ Rebuild master</button>
+            <button class="btn btn-sm btn-danger" onclick="adminLogout()">Logout</button>
+          </div>
+        </div>
+
+        <!-- Select startup -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px">
+          <div class="form-group">
+            <label>Select startup to edit</label>
+            <select id="admin-startup-sel" onchange="loadAdminStartup()">
+              <option value="">— choose —</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-primary" onclick="showAddStartup()">+ Add new startup</button>
+            <button class="btn btn-sm" style="border:1px solid var(--border)" id="add-file-btn" onclick="showAddFile()" disabled>+ Link Drive file</button>
+          </div>
+        </div>
+
+        <!-- Fields editor -->
+        <div id="admin-fields-container" style="display:none">
+          <div class="admin-fields" id="admin-fields-grid"></div>
+        </div>
+
+        <!-- Add new startup form -->
+        <div id="add-startup-form" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px">
+          <h3 style="font-size:14px;color:var(--navy);margin-bottom:14px">Add New Startup</h3>
+          <div class="form-group">
+            <label>Startup name (exact, becomes sheet tab name)</label>
+            <input type="text" id="new-startup-name" placeholder="e.g. TechCo Pvt Ltd">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="createStartup()">Create</button>
+            <button class="btn" style="border:1px solid var(--border)" onclick="document.getElementById('add-startup-form').style.display='none'">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Link Drive file form -->
+        <div id="add-file-form" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px">
+          <h3 style="font-size:14px;color:var(--navy);margin-bottom:14px">Link Google Drive File</h3>
+          <div class="admin-fields">
+            <div class="form-group"><label>Document category</label>
+              <select id="af-category">
+                <option value="Pitch Deck">Pitch Deck</option>
+                <option value="Project Report (PDF)">Project Report (PDF)</option>
+                <option value="Project Report (Word)">Project Report (Word)</option>
+                <option value="Supporting Documents">Supporting Documents</option>
+                <option value="UC &amp; SoE">UC &amp; SoE</option>
+              </select>
+            </div>
+            <div class="form-group"><label>File name</label><input type="text" id="af-name" placeholder="Project Report.pdf"></div>
+            <div class="form-group"><label>Drive File ID</label><input type="text" id="af-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"></div>
+            <div class="form-group"><label>File type</label>
+              <select id="af-type"><option value="pdf">PDF</option><option value="docx">DOCX</option><option value="pptx">PPTX</option><option value="xlsx">XLSX</option><option value="image">Image</option></select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" onclick="submitAddFile()">Link file</button>
+            <button class="btn" style="border:1px solid var(--border)" onclick="document.getElementById('add-file-form').style.display='none'">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Startup detail panel ──────────────────────────────── -->
+<div class="overlay" id="overlay" onclick="closeDetail()"></div>
+<div id="detail-panel" role="dialog" aria-modal="true" aria-label="Startup details">
+  <div class="dp-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
+      <div style="flex:1;min-width:0">
+        <div class="dp-name" id="dp-name">Loading…</div>
+        <div class="dp-sector" id="dp-sector"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:12px;margin-top:2px">
+        <button class="export-btn" onclick="printStartupProfile()" title="Print profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+        <button class="dp-close" onclick="closeDetail()">✕</button>
+      </div>
+    </div>
+    <div class="dp-progress">
+      <div class="dp-progress-track"><div class="dp-progress-fill" id="dp-bar" style="width:0%"></div></div>
+      <div class="dp-pct" id="dp-pct"></div>
+    </div>
+  </div>
+  <div class="dp-tabs">
+    <div class="dp-tab active" data-tab="overview">Overview</div>
+    <div class="dp-tab" data-tab="founders">Founders</div>
+    <div class="dp-tab" data-tab="business">Business</div>
+    <div class="dp-tab" data-tab="disbursements">Disbursements</div>
+    <div class="dp-tab" data-tab="milestones">Milestones</div>
+    <div class="dp-tab" data-tab="documents">Documents</div>
+  </div>
+  <div class="dp-body" id="dp-body"></div>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Config ──────────────────────────────────────────────── */
+const CONFIG = {
+  GAS_URL   : "https://script.google.com/macros/s/AKfycbzbPk6R4VZsi2iU9TO5yG0WaPku9UjWmQpmcFR34X7j0oXc4dYRKpGejJFqqqRnd32p/exec",  // ← paste your deployed GAS URL
+  DEMO_MODE : true,   // set false once GAS is connected
+};
+const DOC_CATEGORIES = [
+  "Pitch Deck",
+  "Project Report (PDF)",
+  "Project Report (Word)",
+  "Supporting Documents",
+  "UC & SoE",
+];
+const CAT_ICONS = {
+  "Pitch Deck"            : "📊",
+  "Project Report (PDF)"  : "📄",
+  "Project Report (Word)" : "📝",
+  "Supporting Documents"  : "📁",
+  "UC & SoE"              : "🧾",
+};
+
+/* ── Demo data (used when DEMO_MODE = true) ──────────────── */
+const DEMO = {
+  dashboard: {
+    // Portfolio
+    totalStartups: 58, totalFiles: 384, overallFillPct: 52,
+    bands: { high: 25, mid: 17, low: 16 },
+    // Health
+    totalRevenue: 124.3, totalEmployment: 165,
+    totalSanctioned: 485.0, totalDisbursed: 312.5, totalUC: 198.0,
+    revenueCount: 19, preRevenue: 39,
+    // Recognition
+    womenLed: 8, dpiitCount: 31, patentsFiled: 12,
+    // Charts
+    sectors: { "Healthcare": 9, "AgriTech": 7, "Robotics/IoT": 6, "AI/ML": 5, "Defence": 4, "EdTech": 3, "Others": 24 },
+    sectorRevenue: { "Healthcare": 38.5, "LegalTech": 18.0, "Defence": 14.2, "EdTech": 12.0, "AgriTech": 9.8, "AI/ML": 8.4, "Robotics/IoT": 6.2, "Others": 17.2 },
+    schemeFunding: {
+      "TIDE 2.0 – Grant": { count:20, sanctioned:280, disbursed:185, uc:142 },
+      "SISFS"           : { count:16, sanctioned:120, disbursed:85,  uc:62  },
+      "TIDE 2.0 – EiR"  : { count:11, sanctioned:65,  disbursed:32,  uc:18  },
+      "NIDHI"           : { count:7,  sanctioned:20,  disbursed:10,  uc:6   },
+    },
+    stages: { "Ideation": 5, "Proof of Concept": 4, "Prototype": 18, "MVP": 12, "Pilot": 8, "Market Launch": 7, "Growth": 4 },
+    lifecycle: { "Active": 42, "Graduated": 10, "Dormant": 4, "Exited": 2 },
+    ageGroups: { "< 1 yr": 5, "1–2 yrs": 12, "2–3 yrs": 18, "3–5 yrs": 16, "> 5 yrs": 7 },
+    ucCompliance: [
+      { name:"NexBus",           disbursed:3.0,  ucFiled:0,    gap:3.0  },
+      { name:"Aivolved Tech.",   disbursed:5.0,  ucFiled:2.5,  gap:2.5  },
+      { name:"SaralSiddhi",      disbursed:7.0,  ucFiled:3.0,  gap:4.0  },
+      { name:"Diabeath",         disbursed:7.0,  ucFiled:4.2,  gap:2.8  },
+      { name:"Pravinyaa Infotech",disbursed:7.0, ucFiled:3.5,  gap:3.5  },
+      { name:"Astr Defence",     disbursed:3.5,  ucFiled:2.0,  gap:1.5  },
+    ],
+  },
+  startups: [
+    { sheet:"Astr Tactical Private Limited",  name:"Astr Tactical Pvt Ltd",    sector:"Defence · Robotics",    scheme:"TIDE 2.0 – Grant", stage:"Market Launch", employment:"12", revenue:"8.5", filled:48, fillPct:86, band:"high", status:"Active",    incubationDate:"2020-06-15", founderName:"Rahul Nair",      founderEmail:"rahul@astrtactical.com",    founderPhone:"9845001001", linkedin:"linkedin.com/in/rahulnair",      disbursed:700000, ucFiled:700000 },
+    { sheet:"Neuroanalog pvt ltd",            name:"Neuroanalog Pvt Ltd",       sector:"Healthcare · Neuro",    scheme:"SISFS",            stage:"Market Launch", employment:"8",  revenue:"3.2", filled:48, fillPct:86, band:"high", status:"Active",    incubationDate:"2021-03-10", founderName:"Priya Sharma",    founderEmail:"priya@neuroanalog.in",      founderPhone:"9900112233", linkedin:"linkedin.com/in/priyasharma",    disbursed:700000, ucFiled:568000 },
+    { sheet:"TechXcelerate Innovations Pvt L",name:"TechXcelerate Innovations", sector:"EdTech · AI",           scheme:"TIDE 2.0 – EiR",   stage:"MVP",           employment:"15", revenue:"12",  filled:48, fillPct:86, band:"high", status:"Active",    incubationDate:"2021-07-01", founderName:"Arjun Mehta",     founderEmail:"arjun@techxcel.io",         founderPhone:"9876543210", linkedin:"linkedin.com/in/arjunmehta",     disbursed:500000, ucFiled:500000 },
+    { sheet:"Astr Defence Private Limited",   name:"Astr Defence Pvt Ltd",      sector:"Defence · Aerospace",   scheme:"TIDE 2.0 – Grant", stage:"Prototype",     employment:"6",  revenue:"—",   filled:47, fillPct:84, band:"high", status:"Active",    incubationDate:"2022-01-20", founderName:"Vikram Reddy",    founderEmail:"vikram@astrdefence.com",    founderPhone:"9741005566", linkedin:"linkedin.com/in/vikramreddy",    disbursed:350000, ucFiled:200000 },
+    { sheet:"AGASTYA MACHINERIES LLP",        name:"Agastya Machineries LLP",   sector:"Manufacturing",         scheme:"SISFS",            stage:"MVP",           employment:"10", revenue:"4.5", filled:45, fillPct:80, band:"high", status:"Graduated", incubationDate:"2019-09-05", founderName:"Suresh Patil",    founderEmail:"suresh@agastya.co.in",      founderPhone:"9900334455", linkedin:"linkedin.com/in/sureshpatil",    disbursed:1200000, ucFiled:1200000 },
+    { sheet:"Diabeath",                       name:"Diabeath",                  sector:"HealthTech · Diabetes",  scheme:"TIDE 2.0 – Grant", stage:"Market Launch", employment:"7",  revenue:"2.1", filled:45, fillPct:80, band:"high", status:"Active",    incubationDate:"2021-11-15", founderName:"Dr. Kavitha Rao", founderEmail:"kavitha@diabeath.health",   founderPhone:"9845123456", linkedin:"linkedin.com/in/kavithao",       disbursed:700000, ucFiled:420000 },
+    { sheet:"JuriCloud Private Limited",      name:"JuriCloud Pvt Ltd",         sector:"LegalTech · SaaS",      scheme:"NIDHI",            stage:"Growth",        employment:"20", revenue:"18",  filled:45, fillPct:80, band:"high", status:"Graduated", incubationDate:"2018-04-01", founderName:"Abhishek Joshi",  founderEmail:"abhishek@juricloud.in",     founderPhone:"9008776655", linkedin:"linkedin.com/in/abhishekjoshi",  disbursed:1500000, ucFiled:1500000 },
+    { sheet:"PRAVINYAA INFOTECH",             name:"Pravinyaa Infotech",        sector:"IT Services",            scheme:"TIDE 2.0 – Grant", stage:"Market Launch", employment:"12", revenue:"6",   filled:45, fillPct:80, band:"high", status:"Active",    incubationDate:"2022-03-01", founderName:"Sneha Kulkarni",  founderEmail:"sneha@pravinyaa.com",       founderPhone:"9632587410", linkedin:"linkedin.com/in/snehakulkarni",  disbursed:700000, ucFiled:350000 },
+    { sheet:"SaralSiddhi Pvt Ltd",            name:"SaralSiddhi Pvt Ltd",       sector:"Healthcare · Ayush",    scheme:"TIDE 2.0 – Grant", stage:"Prototype",     employment:"—",  revenue:"—",   filled:37, fillPct:66, band:"mid",  status:"Dormant",   incubationDate:"2020-08-10", founderName:"Ganesh Bhat",     founderEmail:"ganesh@saralsiddhi.com",    founderPhone:"9741258963", linkedin:"",                               disbursed:700000, ucFiled:300000 },
+    { sheet:"Aivolved Technologies",          name:"Aivolved Technologies",     sector:"AI/ML",                 scheme:"SISFS",            stage:"MVP",           employment:"9",  revenue:"5.5", filled:44, fillPct:79, band:"high", status:"Active",    incubationDate:"2022-06-15", founderName:"Rohan Desai",     founderEmail:"rohan@aivolved.ai",         founderPhone:"9900887766", linkedin:"linkedin.com/in/rohandesai",     disbursed:500000, ucFiled:250000 },
+    { sheet:"FARMERON",                       name:"Farmeron",                  sector:"AgriTech",              scheme:"NIDHI",            stage:"Pilot",         employment:"5",  revenue:"1.2", filled:32, fillPct:57, band:"mid",  status:"Active",    incubationDate:"2023-01-10", founderName:"Ramesh Gowda",    founderEmail:"ramesh@farmeron.in",        founderPhone:"9448001122", linkedin:"linkedin.com/in/rameshgowda",    disbursed:200000, ucFiled:200000 },
+    { sheet:"NexBus",                         name:"NexBus",                    sector:"Mobility · Transport",  scheme:"TIDE 2.0 – EiR",   stage:"Prototype",     employment:"4",  revenue:"—",   filled:26, fillPct:46, band:"mid",  status:"Dormant",   incubationDate:"2021-05-20", founderName:"Ajay Kumar",      founderEmail:"ajay@nexbus.co.in",         founderPhone:"9845009988", linkedin:"",                               disbursed:300000, ucFiled:0 },
+    { sheet:"ClassPulse AI",                  name:"ClassPulse AI",             sector:"EdTech",                scheme:"—",                stage:"Ideation",      employment:"—",  revenue:"—",   filled:1,  fillPct:2,  band:"low",  status:"Active",    incubationDate:"2024-08-01", founderName:"Meera Iyer",      founderEmail:"meera@classpulse.ai",       founderPhone:"9900112244", linkedin:"linkedin.com/in/meeraiyer",      disbursed:0, ucFiled:0 },
+    { sheet:"FARMER CHARMER",                 name:"Farmer Charmer",            sector:"AgriTech",              scheme:"—",                stage:"Ideation",      employment:"—",  revenue:"—",   filled:1,  fillPct:2,  band:"low",  status:"Exited",    incubationDate:"2019-11-01", founderName:"Sunil Patkar",    founderEmail:"sunil@farmercharmer.com",   founderPhone:"9741003322", linkedin:"",                               disbursed:0, ucFiled:0 },
+  ],
+  disbursements: {
+    "Neuroanalog pvt ltd": {
+      disbursements: [
+        { source:"MeitY", component:"Grant", tranche:1, amount:389000, payMode:"NEFT", refNo:"MEITY/TXN/2021/0023", date:"2021-03-15", bank:"SBI Hubballi", ucFiled:"Yes" },
+        { source:"MeitY", component:"Grant", tranche:2, amount:243000, payMode:"RTGS", refNo:"MEITY/TXN/2022/0041", date:"2022-07-10", bank:"SBI Hubballi", ucFiled:"Yes" },
+        { source:"MeitY", component:"Grant", tranche:3, amount:68000,  payMode:"NEFT", refNo:"MEITY/TXN/2023/0018", date:"2023-01-20", bank:"SBI Hubballi", ucFiled:"" },
+      ],
+      totals: {
+        "MeitY|Grant": { source:"MeitY", component:"Grant", sanctioned:700000, disbursed:700000, tranches:3 },
+      }
+    },
+    "Astr Tactical Private Limited": {
+      disbursements: [
+        { source:"MeitY", component:"Grant", tranche:1, amount:370000, payMode:"RTGS", refNo:"MEITY/TXN/2020/0011", date:"2020-11-05", bank:"Canara Bank", ucFiled:"Yes" },
+        { source:"MeitY", component:"Grant", tranche:2, amount:230000, payMode:"NEFT", refNo:"MEITY/TXN/2022/0055", date:"2022-03-30", bank:"Canara Bank", ucFiled:"Yes" },
+        { source:"MeitY", component:"Grant", tranche:3, amount:100000, payMode:"Cheque", refNo:"CHQ/2023/00312", date:"2023-06-14", bank:"Canara Bank", ucFiled:"" },
+      ],
+      totals: {
+        "MeitY|Grant": { source:"MeitY", component:"Grant", sanctioned:700000, disbursed:700000, tranches:3 },
+      }
+    },
+    "SaralSiddhi Pvt Ltd": {
+      disbursements: [
+        { source:"MeitY", component:"Grant", tranche:1, amount:300000, payMode:"NEFT", refNo:"MEITY/TXN/2022/0078", date:"2022-08-20", bank:"SBI Hubballi", ucFiled:"Yes" },
+        { source:"MeitY", component:"Grant", tranche:2, amount:400000, payMode:"RTGS", refNo:"MEITY/TXN/2023/0091", date:"2023-04-05", bank:"SBI Hubballi", ucFiled:"" },
+      ],
+      totals: {
+        "MeitY|Grant": { source:"MeitY", component:"Grant", sanctioned:700000, disbursed:700000, tranches:2 },
+      }
+    },
+  },
+  files: {
+    "Neuroanalog pvt ltd": {
+      "Pitch Deck"           : [{ fileName:"Neuroanalog Pitch Deck.pptx",  driveId:"1EXAMPLE_PPT_ID_NEURO", fileType:"pptx" }],
+      "Project Report (PDF)" : [{ fileName:"Project Report.pdf",            driveId:"1EXAMPLE_PDF_ID_NEURO", fileType:"pdf"  }],
+      "Project Report (Word)": [],
+      "Supporting Documents" : [],
+      "UC & SoE"             : [],
+    },
+    "Diabeath": {
+      "Pitch Deck"           : [],
+      "Project Report (PDF)" : [{ fileName:"Project Report.pdf",            driveId:"1EXAMPLE_PDF_ID_DIA",   fileType:"pdf"  }],
+      "Project Report (Word)": [],
+      "Supporting Documents" : [],
+      "UC & SoE"             : [{ fileName:"UC_Diabeath.pdf",               driveId:"1EXAMPLE_UC_DIA",       fileType:"pdf"  }],
+    },
+    "SaralSiddhi Pvt Ltd": {
+      "Pitch Deck"           : [],
+      "Project Report (PDF)" : [{ fileName:"SS_Project Completion Report.pdf", driveId:"1EXAMPLE_SS_PDF",   fileType:"pdf"  }],
+      "Project Report (Word)": [],
+      "Supporting Documents" : [],
+      "UC & SoE"             : [],
+    },
+  },
+};
+
+/* ── State ───────────────────────────────────────────────── */
+const STATE = {
+  startups     : [],
+  dashboard    : null,
+  viewerToken  : null,
+  adminToken   : null,
+  currentDetail: null,
+  currentDisb  : null,
+  currentDpTab : "overview",
+};
+const VIEWER_KEY = "rhc_viewer_token";
+const ADMIN_KEY  = "rhc_admin_token";
+
+const MILESTONE_KEYS = [
+  "Apr to Jun -24","Jul to Sept -24 ","Oct to Dec -24",
+  "Jan to Mar -25","Apr to Jun -25","Jul to Sept- 25",
+  "Oct to Dec -25","Jan to Mar- 26","Apr to June 26",
+];
+
+/* ── API ─────────────────────────────────────────────────── */
+async function api(params) {
+  if (CONFIG.DEMO_MODE) return apiDemo(params);
+  try {
+    const url = new URL(CONFIG.GAS_URL);
+    const tok = STATE.adminToken || STATE.viewerToken || localStorage.getItem(ADMIN_KEY) || localStorage.getItem(VIEWER_KEY);
+    Object.entries({ token: tok, ...params }).forEach(([k,v]) => url.searchParams.set(k, v));
+    const r   = await fetch(url.toString());
+    if (!r.ok) { showToast(friendlyError(`${r.status}`), "error"); return {}; }
+    const res = await r.json();
+    if (res && res.error) { showToast(friendlyError(res.error), "error"); return {}; }
+    return res;
+  } catch(e) {
+    showToast(friendlyError(e.message), "error");
+    return {};
+  }
+}
+
+async function apiPost(body) {
+  if (CONFIG.DEMO_MODE) return { ok: true };
+  try {
+    const tok = STATE.adminToken || localStorage.getItem(ADMIN_KEY);
+    const r   = await fetch(CONFIG.GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({ token: tok, ...body }),
+    });
+    if (!r.ok) { showToast(friendlyError(`${r.status}`), "error"); return { ok: false }; }
+    const res = await r.json();
+    if (res && res.error) { showToast(friendlyError(res.error), "error"); return { ok: false, error: res.error }; }
+    return res;
+  } catch(e) {
+    showToast(friendlyError(e.message), "error");
+    return { ok: false };
+  }
+}
+
+function apiDemo(params) {
+  switch (params.action) {
+    case "dashboard": return DEMO.dashboard;
+    case "list":      return DEMO.startups;
+    case "disbursements":
+      return DEMO.disbursements[params.name] || { disbursements: [], totals: {} };
+
+    case "contacts":
+      return { contacts: DEMO.startups.map(s => ({
+        name: s.founderName || "—", startup: s.name, scheme: s.scheme,
+        sector: s.sector, email: s.founderEmail || "", phone: s.founderPhone || "",
+        linkedin: s.linkedin || "", status: s.status || "Active",
+      }))};
+
+    case "get": {
+      const s = DEMO.startups.find(x => x.sheet === params.name);
+      if (!s) return { error:"Not found" };
+      return {
+        ...s,
+        data: {
+          "Startup Name"    : s.name,
+          "Sector / Domain" : s.sector,
+          "Scheme"          : s.scheme,
+          "Lifecycle Status": s.status || "Active",
+          "Legal Status (Pvt Ltd / LLP/ Proprietorship)": "Pvt Ltd",
+          "DPIIT Registration ": "DIPP123456",
+          "Incubation Date ": s.incubationDate || "FY 2021",
+          "Founder / Co-founder names": s.founderName || "Demo Founder",
+          "Education Qualification"   : "B.Tech / M.Tech",
+          "Expertise"                 : "Technology & Innovation",
+          "Contact Details : Email / Phone": `${s.founderEmail||"—"} | ${s.founderPhone||"—"}`,
+          "Women Supported Start-up (Y/N)": "No",
+          "Employment generated": s.employment,
+          "Revenue Generated (in lakhs)": s.revenue,
+          "Sanctioned": "₹15 Lakhs",
+          "Disbursed " : s.disbursed ? `₹${(s.disbursed/100000).toFixed(1)} Lakhs` : "—",
+          "UC Amount " : s.ucFiled  ? `₹${(s.ucFiled/100000).toFixed(1)} Lakhs`   : "—",
+          "Company Description": `${s.name} is a technology-driven startup incubated at KLE-CTiE, focused on ${s.sector}. The startup is making significant progress in its domain with a clear go-to-market strategy.`,
+        },
+        milestones: MILESTONE_KEYS.map((k,i) => ({
+          quarter: ["Apr–Jun 24","Jul–Sep 24","Oct–Dec 24","Jan–Mar 25","Apr–Jun 25","Jul–Sep 25","Oct–Dec 25","Jan–Mar 26","Apr–Jun 26"][i],
+          value  : i < 4 ? `Q${i+1} milestone achieved for ${s.name}` : "",
+        })),
+        categories: DEMO.files[s.sheet] || Object.fromEntries(DOC_CATEGORIES.map(c=>[c,[]])),
+        driveFolderId: "",
+      };
+    }
+    default: return {};
+  }
+}
+
+/* ── Viewer auth ─────────────────────────────────────────── */
+async function viewerLogin() {
+  const pw  = document.getElementById("viewer-pw").value.trim();
+  if (!pw) return;
+  const err = document.getElementById("vg-err");
+  err.style.display = "none";
+
+  if (CONFIG.DEMO_MODE) {
+    // Demo: accept any non-empty password
+    STATE.viewerToken = "demo_viewer";
+    localStorage.setItem(VIEWER_KEY, "demo_viewer");
+    document.getElementById("viewer-gate").style.display = "none";
+    initPortal();
+    return;
+  }
+
+  try {
+    const res = await fetch(CONFIG.GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({ action:"viewerLogin", password: pw }),
+    }).then(r => r.json());
+
+    if (res.ok && res.token) {
+      STATE.viewerToken = res.token;
+      localStorage.setItem(VIEWER_KEY, res.token);
+      document.getElementById("viewer-gate").style.display = "none";
+      initPortal();
+    } else {
+      err.textContent = res.error || "Incorrect password. Please try again.";
+      err.style.display = "block";
+    }
+  } catch(e) {
+    err.textContent = "Connection error. Check GAS URL in config.";
+    err.style.display = "block";
+  }
+}
+
+async function viewerLogout() {
+  const tok = STATE.viewerToken || localStorage.getItem(VIEWER_KEY);
+  if (!CONFIG.DEMO_MODE && tok) {
+    apiPost({ action:"logout", token:tok }).catch(()=>{});
+  }
+  STATE.viewerToken = null;
+  STATE.adminToken  = null;
+  localStorage.removeItem(VIEWER_KEY);
+  localStorage.removeItem(ADMIN_KEY);
+  document.getElementById("viewer-pw").value = "";
+  document.getElementById("vg-err").style.display = "none";
+  document.getElementById("viewer-gate").style.display = "flex";
+  // Reset admin panel too
+  document.getElementById("admin-gate").style.display = "block";
+  document.getElementById("admin-panel").style.display = "none";
+}
+
+/* ── Init ────────────────────────────────────────────────── */
+window.addEventListener("DOMContentLoaded", () => {
+  const savedViewer = localStorage.getItem(VIEWER_KEY);
+  const savedAdmin  = localStorage.getItem(ADMIN_KEY);
+  if (savedViewer || savedAdmin) {
+    // Resume existing session
+    STATE.viewerToken = savedViewer || savedAdmin;
+    STATE.adminToken  = savedAdmin || null;
+    document.getElementById("viewer-gate").style.display = "none";
+    initPortal();
+    if (savedAdmin) showAdminPanel();
+  }
+  // Otherwise viewer gate stays visible — viewerLogin() handles it
+});
+
+async function initPortal() {
+  // Show loading screen while data fetches
+  const ls = document.getElementById("loading-screen");
+  if (ls) { ls.style.display = "flex"; ls.classList.remove("hidden"); }
+
+  setupNav();
+  setupSearch();
+  await loadDashboard();
+  await loadPortfolio();
+
+  // Fade out loading screen
+  if (ls) {
+    setTimeout(() => {
+      ls.classList.add("hidden");
+      setTimeout(() => ls.style.display = "none", 600);
+    }, 400);
+  }
+  document.getElementById("reload-btn").onclick = async () => {
+    showToast("Refreshing data…");
+    await loadDashboard();
+    await loadPortfolio();
+    showToast("Data refreshed ✓");
+  };
+}
+
+/* ── Navigation ──────────────────────────────────────────── */
+function setupNav() {
+  document.querySelectorAll(".nav-item[data-page]").forEach(el => {
+    el.addEventListener("click", () => {
+      const page = el.dataset.page;
+      document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+      el.classList.add("active");
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById("page-" + page).classList.add("active");
+      document.getElementById("page-title").textContent =
+        { dashboard:"Dashboard", portfolio:"Portfolio", analytics:"Analytics",
+          files:"File Viewer", milestones:"Milestone Tracker",
+          contacts:"Contact Directory", admin:"Admin Panel" }[page] || page;
+      if (page === "analytics")  renderAnalyticsTable();
+      if (page === "milestones") renderMilestoneTable();
+      if (page === "files")      populateFileStartups();
+      if (page === "contacts")   loadContacts();
+      closeMobileSidebar();
+    });
+  });
+}
+
+/* ── Global search ───────────────────────────────────────── */
+function setupSearch() {
+  const inp = document.getElementById("global-search");
+  const box = document.getElementById("search-results");
+  let t;
+  inp.addEventListener("input", () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const q = inp.value.trim();
+      if (!q) { box.style.display = "none"; return; }
+      const hits = STATE.startups.filter(s =>
+        s.name.toLowerCase().includes(q.toLowerCase()) ||
+        (s.sector && s.sector.toLowerCase().includes(q.toLowerCase()))
+      ).slice(0, 6);
+      box.innerHTML = hits.length
+        ? hits.map(s => `<div class="sr-item" onclick="openDetail('${s.sheet.replace(/'/g,"\\'")}')">
+            <div class="sr-name">${s.name}</div>
+            <div class="sr-meta">${s.sector} · ${s.fillPct}% filled</div>
+          </div>`).join("")
+        : `<div class="sr-item"><div class="sr-meta">No results for "${q}"</div></div>`;
+      box.style.display = "block";
+    }, 200);
+  });
+  document.addEventListener("click", e => { if (!e.target.closest(".search-wrap")) box.style.display = "none"; });
+}
+
+/* ── Dashboard ───────────────────────────────────────────── */
+async function loadDashboard() {
+  const d = await api({ action: "dashboard" });
+  STATE.dashboard = d;
+
+  // Portfolio tile
+  setText("k-total",     d.totalStartups);
+  setText("k-total-sub", `${d.bands.high} high · ${d.bands.mid} mid · ${d.bands.low} low coverage`);
+
+  // Revenue tile
+  setText("k-rev",     "₹" + (d.totalRevenue || 0) + "L");
+  setText("k-rev-sub", `${d.revenueCount || 0} of ${d.totalStartups} generating revenue`);
+
+  // Employment tile
+  setText("k-emp", (d.totalEmployment || 0) + "+");
+
+  // Disbursed tile
+  setText("k-disb",     "₹" + (d.totalDisbursed || 0) + "L");
+  setText("k-disb-sub", `of ₹${d.totalSanctioned || 0}L sanctioned`);
+
+  // Revenue-stage tile
+  setText("k-stage",     d.revenueCount || 0);
+  setText("k-stage-sub", `${d.preRevenue || 0} startups pre-revenue`);
+
+  // Quick stats row
+  setText("k-women",     d.womenLed || 0);
+  setText("k-women-sub", `${Math.round((d.womenLed||0)/d.totalStartups*100)}% of portfolio`);
+  setText("k-dpiit",     d.dpiitCount || 0);
+  setText("k-dpiit-sub", `of ${d.totalStartups} registered`);
+  setText("k-patents",   d.patentsFiled || 0);
+  setText("k-uc",        "₹" + (d.totalUC || 0) + "L");
+  setText("k-uc-sub",    `${Math.round((d.totalUC||0)/(d.totalDisbursed||1)*100)}% of disbursed`);
+
+  drawCharts(d);
+  renderUCWidget(d);
+  renderLifecycleBreakdown(d);
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function drawCharts(d) {
+  // ── Vibrant sector-indexed palette ──────────────────────
+  const PALETTE = [
+    "#2471a3",  // deep blue
+    "#1b7a3e",  // forest green
+    "#c9a84c",  // gold
+    "#7b3f9e",  // purple
+    "#c0392b",  // crimson
+    "#0e7490",  // teal
+    "#854f0b",  // amber
+    "#be185d",  // pink
+    "#0d6e6e",  // dark teal
+    "#5d4e37",  // brown
+    "#2c7bb6",  // sky blue
+    "#d35400",  // orange
+  ];
+  // Translucent versions (for Sanctioned bars)
+  const PALE = PALETTE.map(c => c + "55");
+
+  Chart.defaults.font.family = "'Outfit', sans-serif";
+  Chart.defaults.font.size   = 11;
+  Chart.defaults.color       = "#6b7a99";
+
+  const destroyMake = (id, config) => {
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    if (ctx._chart) ctx._chart.destroy();
+    ctx._chart = new Chart(ctx, config);
+  };
+
+  const gridLine  = "rgba(13,27,62,0.06)";
+  const tickColor = "#6b7a99";
+
+  // 1. Funding pipeline — grouped bar per scheme
+  const schemeNames = Object.keys(d.schemeFunding || {});
+  destroyMake("chart-funding", {
+    type: "bar",
+    data: {
+      labels: schemeNames,
+      datasets: [
+        { label:"Sanctioned", data: schemeNames.map(s => d.schemeFunding[s].sanctioned),
+          backgroundColor: "#0d1b3e55", borderRadius:4 },
+        { label:"Disbursed",  data: schemeNames.map(s => d.schemeFunding[s].disbursed),
+          backgroundColor: "#2471a3",   borderRadius:4 },
+        { label:"UC Filed",   data: schemeNames.map(s => d.schemeFunding[s].uc),
+          backgroundColor: "#c9a84c",   borderRadius:4 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { display:true, position:"top", labels:{ boxWidth:10, padding:14, usePointStyle:true } },
+        tooltip:{ padding:10, cornerRadius:8, callbacks:{ label: ctx => ` ₹${ctx.raw} L` }}
+      },
+      scales: {
+        x: { grid:{display:false} },
+        y: { grid:{color:gridLine}, ticks:{ color:tickColor, callback: v => "₹"+v+"L" } },
+      }
+    }
+  });
+
+  // 2. Stage funnel — horizontal bar, color gradients from ideation → growth
+  const STAGE_COLORS = [
+    "#7b3f9e","#2471a3","#0e7490","#1b7a3e","#c9a84c","#854f0b","#c0392b"
+  ];
+  const stageLabels = Object.keys(d.stages || {});
+  destroyMake("chart-stage", {
+    type: "bar",
+    data: {
+      labels: stageLabels,
+      datasets: [{ data: Object.values(d.stages || {}),
+        backgroundColor: stageLabels.map((_,i) => STAGE_COLORS[i % STAGE_COLORS.length]),
+        borderRadius:5 }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ padding:8, cornerRadius:8,
+        callbacks:{ label: ctx => ` ${ctx.raw} startups` }
+      }},
+      scales: {
+        x: { grid:{color:gridLine}, ticks:{precision:0, color:tickColor} },
+        y: { grid:{display:false}, ticks:{ color:tickColor } },
+      }
+    }
+  });
+
+  // 3. Revenue by sector — bar with rich per-sector color
+  const secRevLabels = Object.keys(d.sectorRevenue || {}).slice(0,10);
+  destroyMake("chart-secrev", {
+    type: "bar",
+    data: {
+      labels: secRevLabels,
+      datasets: [{ label:"Revenue (₹ L)", data: secRevLabels.map(s => d.sectorRevenue[s]),
+        backgroundColor: secRevLabels.map((_,i) => PALETTE[i % PALETTE.length]),
+        borderRadius:5 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ padding:8, cornerRadius:8,
+        callbacks:{ label: ctx => ` ₹${ctx.raw} Lakhs` }
+      }},
+      scales: {
+        x: { grid:{display:false}, ticks:{ color:tickColor } },
+        y: { grid:{color:gridLine}, ticks:{ color:tickColor, callback: v => "₹"+v+"L" } },
+      }
+    }
+  });
+
+  // 4. Sector distribution — doughnut, compact with right legend
+  destroyMake("chart-sector", {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(d.sectors || {}),
+      datasets: [{ data: Object.values(d.sectors || {}),
+        backgroundColor: Object.keys(d.sectors||{}).map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderColor:"#fff", borderWidth:2.5, hoverOffset:6 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, cutout:"62%",
+      plugins: {
+        legend:{ display:true, position:"right",
+          labels:{ boxWidth:9, padding:9, font:{size:10}, color:tickColor, usePointStyle:true } },
+        tooltip:{ padding:8, cornerRadius:8 }
+      }
+    }
+  });
+}
+
+/* ── Portfolio ───────────────────────────────────────────── */
+async function loadPortfolio() {
+  const list = await api({ action: "list" });
+  STATE.startups = list;
+
+  // Populate filter dropdowns
+  const sectors = [...new Set(list.map(s => s.sector).filter(s => s && s !== "—"))].sort();
+  const schemes = [...new Set(list.map(s => s.scheme).filter(s => s && s !== "—"))].sort();
+  const fSec = document.getElementById("f-sector");
+  const fSch = document.getElementById("f-scheme");
+  sectors.forEach(s => { const o=document.createElement("option"); o.value=o.textContent=s; fSec.appendChild(o); });
+  schemes.forEach(s => { const o=document.createElement("option"); o.value=o.textContent=s; fSch.appendChild(o); });
+
+  // Populate admin & file viewer startup dropdowns
+  const adminSel  = document.getElementById("admin-startup-sel");
+  const fvStartup = document.getElementById("fv-startup");
+  list.forEach(s => {
+    const o1=document.createElement("option"); o1.value=s.sheet; o1.textContent=s.name; adminSel.appendChild(o1);
+    const o2=document.createElement("option"); o2.value=s.sheet; o2.textContent=s.name; fvStartup.appendChild(o2);
+  });
+
+  renderCards(list);
+  setupPortfolioFilters(list);
+}
+
+function renderCards(list) {
+  const grid = document.getElementById("startup-grid");
+  document.getElementById("filter-count").textContent = `${list.length} startups`;
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>No startups match the current filters.</p></div>`;
+    return;
+  }
+  const lcClass = { Active:"lc-active", Graduated:"lc-graduated", Dormant:"lc-dormant", Exited:"lc-exited" };
+  const ageBadge = s => {
+    if (!s.incubationDate) return "";
+    const yrs = Math.floor((Date.now() - new Date(s.incubationDate)) / (365.25*24*3600*1000));
+    const cls = yrs > 5 ? " old" : "";
+    return `<span class="age-badge${cls}" title="Incubated ${yrs}yr ago">${yrs}yr</span>`;
+  };
+  grid.innerHTML = list.map(s => `
+    <div class="startup-card" onclick="openDetail('${s.sheet.replace(/'/g,"\\'")}')">
+      <div class="sc-header">
+        <div class="sc-name">${s.name}</div>
+        <span class="sc-band band-${s.band}">${s.fillPct}%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+        ${s.status ? `<span class="lc-badge ${lcClass[s.status]||"lc-active"}"><span class="lc-dot"></span>${s.status}</span>` : ""}
+        ${ageBadge(s)}
+      </div>
+      <div class="sc-sector">${s.sector || "—"}</div>
+      <div class="progress-track"><div class="progress-fill fill-${s.band}" style="width:${s.fillPct}%"></div></div>
+      <div class="sc-chips">
+        ${s.scheme && s.scheme!=="—" ? `<span class="chip chip-scheme">${s.scheme}</span>` : ""}
+        ${s.stage  && s.stage !=="—" ? `<span class="chip chip-blue">${s.stage}</span>`  : ""}
+        ${s.employment && s.employment!=="—" ? `<span class="chip chip-pct">👥 ${s.employment}</span>` : ""}
+      </div>
+    </div>`).join("");
+}
+
+function setupPortfolioFilters(all) {
+  const filter = () => {
+    const sec = document.getElementById("f-sector").value;
+    const sch = document.getElementById("f-scheme").value;
+    const st  = document.getElementById("f-status").value;
+    const band= document.getElementById("f-band").value;
+    const q   = document.getElementById("f-search").value.toLowerCase();
+    const res = all.filter(s =>
+      (!sec  || s.sector === sec) &&
+      (!sch  || s.scheme === sch) &&
+      (!st   || (s.status||"Active") === st) &&
+      (!band || s.band   === band) &&
+      (!q    || s.name.toLowerCase().includes(q))
+    );
+    renderCards(res);
+  };
+  ["f-sector","f-scheme","f-status","f-band"].forEach(id => document.getElementById(id).addEventListener("change", filter));
+  document.getElementById("f-search").addEventListener("input", filter);
+}
+
+/* ── Startup detail panel ────────────────────────────────── */
+async function openDetail(sheetName) {
+  document.getElementById("search-results").style.display = "none";
+  document.getElementById("detail-panel").classList.add("open");
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("dp-name").textContent = "Loading…";
+  document.getElementById("dp-body").innerHTML = `<div style="text-align:center;padding:40px"><div class="spinner"></div></div>`;
+
+  const [d, disb] = await Promise.all([
+    api({ action:"get", name: sheetName }),
+    api({ action:"disbursements", name: sheetName }),
+  ]);
+  STATE.currentDetail = d;
+  STATE.currentDisb   = disb;
+  STATE.currentDpTab  = "overview";
+
+  document.getElementById("dp-name").textContent   = d.data?.["Startup Name"] || sheetName;
+  document.getElementById("dp-sector").textContent = d.data?.["Sector / Domain"] || "";
+  document.getElementById("dp-bar").style.width    = (d.fillPct || 0) + "%";
+  document.getElementById("dp-pct").textContent    = `${d.filled || 0} / 56 fields filled (${d.fillPct || 0}%)`;
+
+  // Tabs
+  document.querySelectorAll(".dp-tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.tab === "overview");
+    t.onclick = () => switchDpTab(t.dataset.tab);
+  });
+
+  renderDpTab("overview");
+}
+
+function switchDpTab(tab) {
+  STATE.currentDpTab = tab;
+  document.querySelectorAll(".dp-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+  renderDpTab(tab);
+}
+
+function renderDpTab(tab) {
+  const d    = STATE.currentDetail;
+  const data = d?.data || {};
+  const body = document.getElementById("dp-body");
+  const fld  = (key, label) => `
+    <div class="dp-field">
+      <div class="dp-label">${label}</div>
+      <div class="dp-value ${!data[key]?'empty':''}">${data[key] || '—'}</div>
+    </div>`;
+
+  switch (tab) {
+    case "overview": {
+      const lcClass = { Active:"lc-active", Graduated:"lc-graduated", Dormant:"lc-dormant", Exited:"lc-exited" };
+      const lcVal   = data["Lifecycle Status"] || "Active";
+      const incDate = data["Incubation Date "] || "";
+      let ageStr = "";
+      if (incDate && incDate.match(/\d{4}-\d{2}-\d{2}/)) {
+        const yrs = Math.floor((Date.now() - new Date(incDate)) / (365.25*24*3600*1000));
+        ageStr = ` · ${yrs} yr${yrs!==1?"s":""} incubated`;
+      }
+      body.innerHTML = `
+        <div class="dp-section">
+          <div class="dp-section-title">Basic Information</div>
+          <div class="dp-field"><div class="dp-label">Status</div>
+            <div class="dp-value"><span class="lc-badge ${lcClass[lcVal]||"lc-active"}"><span class="lc-dot"></span>${lcVal}</span>${ageStr ? `<span class="age-badge" style="margin-left:8px">${ageStr.trim()}</span>` : ""}</div>
+          </div>
+          ${fld("Legal Status (Pvt Ltd / LLP/ Proprietorship)","Legal status")}
+          ${fld("DPIIT Registration ","DPIIT no.")}
+          ${fld("Incubation Date ","Incubation date")}
+          ${fld("Scheme","Scheme")}
+          ${fld("Start-up Type (Physical / Virtual )","Type")}
+          ${fld("Incubatee Type (Student / Faculty / Researcher / Alumni / External)","Incubatee type")}
+          ${fld("Website","Website")}
+        </div>
+        <div class="dp-section">
+          <div class="dp-section-title">Company Description</div>
+          <p style="font-size:13px;line-height:1.7;color:var(--text)">${data["Company Description"] || '<span style="color:var(--muted);font-style:italic">Not available</span>'}</p>
+        </div>`;
+      break;
+    }
+
+    case "founders":
+      body.innerHTML = `
+        <div class="dp-section">
+          <div class="dp-section-title">Founder & Team</div>
+          ${fld("Founder / Co-founder names","Founder(s)")}
+          ${fld("Education Qualification","Qualification")}
+          ${fld("Expertise","Expertise")}
+          ${fld("Experience","Experience")}
+          ${fld("Contact Details : Email / Phone","Contact")}
+          ${fld("Women Supported Start-up (Y/N)","Women-led")}
+          ${fld("Core Team Details ","Core team")}
+          ${fld("Mentor ","Mentor")}
+        </div>`;
+      break;
+
+    case "business":
+      body.innerHTML = `
+        <div class="dp-section">
+          <div class="dp-section-title">Products</div>
+          ${fld("Product Name","Product name")}
+          ${fld("Number of products","No. of products")}
+          ${fld("Product Lines","Product lines")}
+          ${fld("Patent filed/ Patent granted","Patent / IP")}
+          ${fld("Trademark filed/granted","Trademark")}
+          ${fld("Collaborations/Partnerships","Collaborations")}
+        </div>
+        <div class="dp-section">
+          <div class="dp-section-title">Financials</div>
+          ${fld("Sanctioned","Sanctioned")}
+          ${fld("Disbursed ","Disbursed")}
+          ${fld("UC Amount ","UC amount")}
+          ${fld("Revenue Generated (in lakhs)","Revenue (₹)")}
+          ${fld("Employment generated","Employment")}
+          ${fld("Number of Customers and name ","Customers")}
+          ${fld("Valuation as on May 2026","Valuation")}
+          ${fld("GST Filed (Total GST billed till May 2026 (including CGST, SGST, IGST) after funding","GST filed")}
+        </div>
+        <div class="dp-section">
+          <div class="dp-section-title">Recognition</div>
+          ${fld("Awards & Recognition","Awards")}
+          ${fld("Success Stories","Success stories")}
+          ${fld("Impact Created","Impact")}
+        </div>`;
+      break;
+
+    case "disbursements": {
+      const disb   = STATE.currentDisb || { disbursements: [], totals: {} };
+      const rows   = disb.disbursements || [];
+      const totals = disb.totals || {};
+
+      const SOURCE_COLOR = {
+        "MeitY"       : "#DEEAF1",
+        "KLE-CTiE TBI": "#E2EFDA",
+        "NIDHI SSS"   : "#FCE4D6",
+        "SISFS"       : "#F3E8FF",
+      };
+      const MODE_ICON = { "Cheque":"🧾","NEFT":"🏦","RTGS":"🏦","Online Transfer":"💻","IMPS":"📱" };
+
+      // UC gap alert
+      // totalDisb in ₹ (from ledger); UC Amount field is in lakhs → convert to ₹
+      const totalDisbRs  = rows.reduce((s,r) => s + (r.amount||0), 0);
+      const totalDisbL   = Math.round(totalDisbRs / 100000 * 10) / 10;
+      const ucRaw        = d?.data?.["UC Amount "] || "";
+      const ucMatch      = ucRaw.toString().match(/[\d.]+/);
+      const conUCL       = ucMatch ? parseFloat(ucMatch[0]) : 0;
+      const ucGapL       = Math.round((totalDisbL - conUCL) * 10) / 10;
+      const ucAlert      = ucGapL > 0.5 ? `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px">
+        ⚠ <strong>UC compliance gap:</strong> ₹${totalDisbL}L disbursed but only ₹${conUCL}L UC filed
+        — <strong>₹${ucGapL}L pending</strong>
+      </div>` : conUCL >= totalDisbL && totalDisbL > 0 ? `<div style="background:#d6f0d6;border:1px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px">
+        ✓ UC compliant — ₹${conUCL}L UC filed against ₹${totalDisbL}L disbursed
+      </div>` : "";
+
+      // Funding summary cards by source/component
+      const summaryCards = Object.values(totals).map(t => `
+        <div style="background:${SOURCE_COLOR[t.source]||"#f5f5f5"};border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--navy)">${t.source} — ${t.component}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">${t.tranches} tranche${t.tranches!==1?"s":""} paid</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:700;color:var(--navy)">₹${(t.disbursed||0).toLocaleString()}</div>
+            ${t.sanctioned ? `<div style="font-size:10px;color:var(--muted)">of ₹${(t.sanctioned||0).toLocaleString()} sanctioned</div>` : ""}
+            <div style="font-size:10px;color:var(--muted)">(₹${Math.round((t.disbursed||0)/100000*10)/10}L)</div>
+          </div>
+        </div>`).join("");
+
+      // Tranche table
+      const trancheRows = rows.map(r => `
+        <tr>
+          <td style="font-weight:600;color:var(--navy)">${r.source}</td>
+          <td>${r.component}</td>
+          <td style="text-align:center;font-weight:600">${r.tranche || "—"}</td>
+          <td style="text-align:right;font-weight:600;color:var(--navy)">₹${(r.amount||0).toLocaleString()}</td>
+          <td>${r.payMode ? `${MODE_ICON[r.payMode]||""} ${r.payMode}` : '<span style="color:var(--muted);font-style:italic">—</span>'}</td>
+          <td style="font-size:10px;color:var(--muted)">${r.refNo||"—"}</td>
+          <td style="font-size:10px;color:var(--muted)">${r.date||"—"}</td>
+          <td style="text-align:center">${r.ucFiled ? `<span style="color:#3B6D11;font-weight:600">✓</span>` : `<span style="color:var(--muted)">—</span>`}</td>
+        </tr>`).join("");
+
+      body.innerHTML = `
+        ${ucAlert}
+        <div class="dp-section">
+          <div class="dp-section-title">Funding summary by source</div>
+          ${summaryCards || '<p style="color:var(--muted);font-size:12px;font-style:italic">No disbursement records yet. Import from disbursements_seed.xlsx or add via Admin Panel.</p>'}
+        </div>
+        ${rows.length ? `
+        <div class="dp-section">
+          <div class="dp-section-title">Tranche-wise ledger</div>
+          <div style="overflow-x:auto">
+            <table class="data-table" style="font-size:11px">
+              <thead><tr>
+                <th>Source</th><th>Component</th><th>Tranche</th>
+                <th>Amount (₹)</th><th>Pay Mode</th>
+                <th>Ref / UTR</th><th>Date</th><th>UC?</th>
+              </tr></thead>
+              <tbody>${trancheRows}</tbody>
+            </table>
+          </div>
+        </div>` : ""}
+        <div class="dp-section">
+          <div class="dp-section-title">From startup record</div>
+          ${fld("Sanctioned","Sanctioned")}
+          ${fld("Disbursed ","Disbursed")}
+          ${fld("UC Amount ","UC Amount")}
+          ${fld("Govt","Govt funding")}
+          ${fld("Loan","Loan")}
+          ${fld("Angel ","Angel funding")}
+          ${fld("VC","VC funding")}
+        </div>`;
+      break;
+    }
+
+    case "milestones":
+      const ms = d?.milestones || [];
+      const hasAny = ms.some(m => m.value);
+      body.innerHTML = `
+        <div class="dp-section">
+          <div class="dp-section-title">Quarterly Milestones</div>
+          ${hasAny
+            ? ms.map(m => `
+                <div class="milestone-row">
+                  <div class="ms-quarter">${m.quarter}</div>
+                  <div class="ms-val ${!m.value?'empty':''}">${m.value || '—'}</div>
+                </div>`).join("")
+            : `<p style="color:var(--muted);font-size:13px;font-style:italic">No milestone data submitted for this startup.</p>`
+          }
+        </div>
+        ${data["Remarks"] ? `<div class="dp-section"><div class="dp-section-title">Remarks</div><p style="font-size:12px;line-height:1.7">${data["Remarks"]}</p></div>` : ""}`;
+      break;
+
+    case "documents": {
+      const cats = d?.categories || {};
+      const hasAnyFile = DOC_CATEGORIES.some(c => (cats[c]||[]).length > 0);
+      body.innerHTML = `
+        ${DOC_CATEGORIES.map(cat => {
+          const catFiles = cats[cat] || [];
+          return `<div class="doc-category">
+            <div class="doc-cat-hdr">
+              <span class="doc-cat-icon">${CAT_ICONS[cat]||"📁"}</span>
+              <span>${cat}</span>
+              <span class="doc-cat-count">${catFiles.length}</span>
+            </div>
+            ${catFiles.length
+              ? catFiles.map(f => `
+                  <div class="file-card" onclick="previewFile('${f.driveId}','${f.fileName}','${f.fileType}')">
+                    <div class="file-icon">${{pdf:"📄",docx:"📝",pptx:"📊",xlsx:"📈",image:"🖼"}[f.fileType]||"📁"}</div>
+                    <div class="file-info">
+                      <div class="file-name">${f.fileName}</div>
+                      <div class="file-type">${(f.fileType||"").toUpperCase()} · Click to preview</div>
+                    </div>
+                  </div>`).join("")
+              : `<div class="doc-empty">No file linked — upload via Admin Panel</div>`
+            }
+          </div>`;
+        }).join("")}
+        ${d?.driveFolderId ? `
+          <div style="margin-top:8px;padding:10px 14px;background:var(--vl);border-radius:8px;font-size:12px">
+            📂 <a href="https://drive.google.com/drive/folders/${d.driveFolderId}" target="_blank"
+               style="color:var(--blue);font-weight:500">Open Drive folder for this startup ↗</a>
+          </div>` : ""}
+        <div id="dp-preview-area" style="margin-top:12px"></div>`;
+      break;
+    }
+  }
+}
+
+function previewFile(driveId, fileName, fileType) {
+  const area = document.getElementById("dp-preview-area");
+  let src;
+  if (fileType === "pdf") {
+    src = `https://drive.google.com/file/d/${driveId}/preview`;
+  } else if (["docx","pptx","xlsx"].includes(fileType)) {
+    src = `https://docs.google.com/viewer?url=https://drive.google.com/uc?id=${driveId}&embedded=true`;
+  } else {
+    src = `https://drive.google.com/uc?id=${driveId}`;
+  }
+  area.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px">
+      <span style="font-weight:600;font-size:12px;color:var(--navy)">${fileName}</span>
+      <button class="btn btn-sm" style="border:1px solid var(--border)" onclick="document.getElementById('dp-preview-area').innerHTML=''">✕</button>
+    </div>
+    <iframe src="${src}" style="width:100%;height:420px;border:1px solid var(--border);border-radius:8px" allowfullscreen></iframe>`;
+}
+
+function closeDetail() {
+  document.getElementById("detail-panel").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+/* ── Analytics table ─────────────────────────────────────── */
+function renderAnalyticsTable() {
+  const tbody = document.getElementById("analytics-tbody");
+  tbody.innerHTML = STATE.startups.map((s, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><strong style="color:var(--navy);cursor:pointer" onclick="openDetail('${s.sheet.replace(/'/g,"\\'")}')">
+        ${s.name}</strong></td>
+      <td>${s.sector||"—"}</td>
+      <td>${s.scheme||"—"}</td>
+      <td>${s.stage||"—"}</td>
+      <td>${s.employment||"—"}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:60px;height:6px;background:var(--border);border-radius:20px;overflow:hidden">
+            <div style="width:${s.fillPct}%;height:100%;background:${{high:"#639922",mid:"#BA7517",low:"#D85A30"}[s.band]};border-radius:20px"></div>
+          </div>
+          ${s.fillPct}%
+        </div>
+      </td>
+      <td><span class="sc-band band-${s.band}">${{high:"High",mid:"Mid",low:"Low"}[s.band]}</span></td>
+    </tr>`).join("");
+
+  // Fill rate chart
+  const top30 = STATE.startups.slice(0, 30);
+  const ctx   = document.getElementById("chart-fillrate");
+  if (ctx) {
+    if (ctx._chart) ctx._chart.destroy();
+    ctx._chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: top30.map(s => s.name.length > 22 ? s.name.substring(0,20)+"…" : s.name),
+        datasets: [{
+          data: top30.map(s => s.fillPct),
+          backgroundColor: top30.map(s => ({high:"#1b7a3e",mid:"#c9a84c",low:"#c0392b"})[s.band]),
+          borderRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend:{ display:false },
+          tooltip:{ padding:8, cornerRadius:8, callbacks:{ label: ctx => ` ${ctx.raw}% complete` }}
+        },
+        scales: {
+          x: { grid:{display:false}, ticks:{maxRotation:45, font:{size:10}, color:"#6b7a99"} },
+          y: { max:100, grid:{color:"rgba(13,27,62,0.06)"}, ticks:{callback:v=>v+"%", color:"#6b7a99"} },
+        }
+      }
+    });
+  }
+}
+
+/* ── UC Compliance dashboard widget ─────────────────────── */
+function renderUCWidget(d) {
+  const rows = document.getElementById("uc-rows");
+  const cnt  = document.getElementById("uc-gap-count");
+  const data = d.ucCompliance || [];
+
+  if (!rows) return;
+  if (!data.length) {
+    rows.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">✓ All startups are UC compliant</div>`;
+    if (cnt) cnt.textContent = "0 gaps";
+    return;
+  }
+
+  cnt.textContent = `${data.length} startup${data.length!==1?"s":""} with gap`;
+  rows.innerHTML = data.map(r => {
+    const pct = r.disbursed > 0 ? Math.round(r.gap / r.disbursed * 100) : 0;
+    const cls = pct > 60 ? "uc-red" : pct > 25 ? "uc-amber" : "uc-green";
+    return `<div class="uc-row">
+      <div style="font-weight:600;color:var(--navy);font-size:12px">${r.name}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px">₹${r.disbursed}L</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px">₹${r.ucFiled}L</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#c0392b">₹${r.gap}L</div>
+      <div><span class="uc-gap-pill ${cls}">${pct}% gap</span></div>
+    </div>`;
+  }).join("");
+}
+
+/* ── Lifecycle & age charts ─────────────────────────────── */
+function renderLifecycleBreakdown(d) {
+  const el = document.getElementById("lc-breakdown");
+  if (!el) return;
+  const lc = d.lifecycle || {};
+  const total = Object.values(lc).reduce((a,b)=>a+b,0) || 1;
+  const cfg = {
+    Active    : { cls:"lc-active",    label:"Active"    },
+    Graduated : { cls:"lc-graduated", label:"Graduated" },
+    Dormant   : { cls:"lc-dormant",   label:"Dormant"   },
+    Exited    : { cls:"lc-exited",    label:"Exited"    },
+  };
+  el.innerHTML = Object.entries(lc).map(([k,v]) => {
+    const c = cfg[k] || {};
+    const pct = Math.round(v/total*100);
+    return `<div style="display:flex;align-items:center;gap:10px">
+      <span class="lc-badge ${c.cls||""}" style="min-width:90px;justify-content:center">
+        <span class="lc-dot"></span>${c.label||k}
+      </span>
+      <div style="flex:1;height:8px;background:rgba(13,27,62,.07);border-radius:6px;overflow:hidden">
+        <div style="height:100%;border-radius:6px;width:${pct}%;background:currentColor;opacity:.6;transition:width .8s"></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;min-width:48px;text-align:right;color:var(--muted)">${v} · ${pct}%</span>
+    </div>`;
+  }).join("");
+
+  // Age distribution chart
+  const ag = d.ageGroups || {};
+  const ageCtx = document.getElementById("chart-age");
+  if (ageCtx) {
+    if (ageCtx._chart) ageCtx._chart.destroy();
+    ageCtx._chart = new Chart(ageCtx, {
+      type: "bar",
+      data: {
+        labels: Object.keys(ag),
+        datasets: [{ data: Object.values(ag),
+          backgroundColor: ["#c9a84c","#2471a3","#1b7a3e","#7b3f9e","#c0392b"],
+          borderRadius: 5 }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ padding:8, cornerRadius:8,
+          callbacks:{ label: ctx => ` ${ctx.raw} startups` }
+        }},
+        scales:{
+          x:{grid:{display:false},ticks:{color:"#6b7a99"}},
+          y:{grid:{color:"rgba(13,27,62,.06)"},ticks:{precision:0,color:"#6b7a99"}}
+        }
+      }
+    });
+  }
+}
+
+/* ── Contacts page ──────────────────────────────────────── */
+let ALL_CONTACTS = [];
+
+async function loadContacts() {
+  const res = await api({ action: "contacts" });
+  ALL_CONTACTS = res.contacts || [];
+
+  // Populate scheme filter
+  const sel = document.getElementById("contact-scheme");
+  const schemes = [...new Set(ALL_CONTACTS.map(c => c.scheme).filter(s => s && s!=="—"))].sort();
+  schemes.forEach(s => { const o = document.createElement("option"); o.value = s; o.textContent = s; sel.appendChild(o); });
+
+  renderContacts(ALL_CONTACTS);
+}
+
+function renderContacts(list) {
+  const grid = document.getElementById("contact-grid");
+  const cnt  = document.getElementById("contact-count");
+  if (!grid) return;
+  if (cnt) cnt.textContent = `${list.length} contact${list.length!==1?"s":""}`;
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>No contacts found</p></div>`;
+    return;
+  }
+
+  const initials = name => name.split(" ").slice(0,2).map(w=>w[0]||"").join("").toUpperCase() || "?";
+  const lcClass = { Active:"lc-active", Graduated:"lc-graduated", Dormant:"lc-dormant", Exited:"lc-exited" };
+
+  grid.innerHTML = list.map(c => `
+    <div class="contact-card">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
+        <div class="contact-avatar">${initials(c.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="contact-name">${c.name}</div>
+          <div class="contact-startup">${c.startup}</div>
+          ${c.status ? `<span class="lc-badge ${lcClass[c.status]||"lc-active"}" style="font-size:9px;padding:2px 7px"><span class="lc-dot"></span>${c.status}</span>` : ""}
+        </div>
+      </div>
+      ${c.email ? `<div class="contact-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <a href="mailto:${c.email}">${c.email}</a>
+      </div>` : ""}
+      ${c.phone ? `<div class="contact-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.4 2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <a href="tel:${c.phone}">${c.phone}</a>
+      </div>` : ""}
+      ${c.linkedin ? `<div class="contact-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        <a href="https://${c.linkedin}" target="_blank" rel="noopener">LinkedIn profile</a>
+      </div>` : ""}
+      <div class="contact-row" style="margin-top:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span style="color:var(--muted)">${c.sector || "—"} · ${c.scheme && c.scheme!=="—" ? c.scheme : "No scheme"}</span>
+      </div>
+    </div>`).join("");
+}
+
+function filterContacts() {
+  const q   = (document.getElementById("contact-search")?.value||"").toLowerCase();
+  const sch = document.getElementById("contact-scheme")?.value || "";
+  const lc  = document.getElementById("contact-lc")?.value || "";
+  const res = ALL_CONTACTS.filter(c =>
+    (!q   || c.name.toLowerCase().includes(q) || c.startup.toLowerCase().includes(q) || (c.email||"").toLowerCase().includes(q)) &&
+    (!sch || c.scheme === sch) &&
+    (!lc  || (c.status||"Active") === lc)
+  );
+  renderContacts(res);
+}
+
+function exportContacts() {
+  const rows = [["Name","Startup","Email","Phone","LinkedIn","Sector","Scheme","Status"]];
+  ALL_CONTACTS.forEach(c => rows.push([c.name,c.startup,c.email||"",c.phone||"",c.linkedin||"",c.sector||"",c.scheme||"",c.status||""]));
+  downloadCSV(rows, "rhc_contacts.csv");
+}
+
+/* ── Portfolio CSV export ───────────────────────────────── */
+function exportPortfolioCSV() {
+  const list = STATE.startups;
+  if (!list.length) return;
+  const rows = [["Startup Name","Sector","Scheme","Stage","Employment","Revenue (L)","Fill %","Band","Status","Incubation Date"]];
+  list.forEach(s => rows.push([s.name,s.sector||"",s.scheme||"",s.stage||"",s.employment||"",s.revenue||"",s.fillPct,s.band,s.status||"",s.incubationDate||""]));
+  downloadCSV(rows, "rhc_portfolio.csv");
+}
+
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a   = Object.assign(document.createElement("a"), {
+    href: "data:text/csv;charset=utf-8," + encodeURIComponent("﻿" + csv),
+    download: filename
+  });
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast(`Exported ${rows.length-1} rows to ${filename}`);
+}
+
+/* ── Print startup profile ──────────────────────────────── */
+function printStartupProfile() {
+  const d    = STATE.currentDetail;
+  if (!d) return;
+  const data = d.data || {};
+  const name = data["Startup Name"] || d.name || "Startup Profile";
+  const pt   = document.getElementById("print-target");
+  if (!pt) return;
+
+  const fldRow = (label, val) => val && val !== "—"
+    ? `<tr><td style="padding:6px 10px;color:#6b7a99;width:180px;font-size:12px;border-bottom:1px solid #eee">${label}</td><td style="padding:6px 10px;font-size:12px;border-bottom:1px solid #eee">${val}</td></tr>`
+    : "";
+
+  pt.innerHTML = `
+    <div class="print-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+          <div style="font-size:11px;color:#c9a84c;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">KLE-CTiE · EE Lab · RHC Portfolio</div>
+          <h1 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#0d1b3e;margin-bottom:4px">${name}</h1>
+          <p style="color:#6b7a99;font-size:12px">${data["Sector / Domain"]||""} · ${data["Scheme"]||""}</p>
+        </div>
+        <div style="text-align:right;font-size:11px;color:#6b7a99;font-family:monospace">
+          Printed: ${new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}<br>
+          Status: <strong>${data["Lifecycle Status"]||"Active"}</strong>
+        </div>
+      </div>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+      ${fldRow("Legal Status",    data["Legal Status (Pvt Ltd / LLP/ Proprietorship)"])}
+      ${fldRow("Incubation Date", data["Incubation Date "])}
+      ${fldRow("DPIIT No.",       data["DPIIT Registration "])}
+      ${fldRow("Stage",           d.stage)}
+      ${fldRow("Employment",      data["Employment generated"])}
+      ${fldRow("Revenue",         data["Revenue Generated (in lakhs)"]+" L")}
+      ${fldRow("Sanctioned",      data["Sanctioned"])}
+      ${fldRow("Disbursed",       data["Disbursed "])}
+      ${fldRow("UC Filed",        data["UC Amount "])}
+    </table>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#c9a84c;border-bottom:1px solid rgba(201,168,76,.3);padding-bottom:4px;margin-bottom:8px">Founders & Team</div>
+      ${fldRow("Founder",   data["Founder / Co-founder names"])??""}
+      ${fldRow("Contact",   data["Contact Details : Email / Phone"])??""}
+      ${fldRow("Women-led", data["Women Supported Start-up (Y/N)"])??""}
+    </div>
+
+    <div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#c9a84c;border-bottom:1px solid rgba(201,168,76,.3);padding-bottom:4px;margin-bottom:8px">About</div>
+      <p style="font-size:12px;line-height:1.7;color:#0d1b3e">${data["Company Description"]||"—"}</p>
+    </div>
+
+    <div style="margin-top:32px;padding-top:12px;border-top:1px solid #eee;font-size:10px;color:#aaa;display:flex;justify-content:space-between">
+      <span>RHC EE Lab · KLE-CTiE · KLE Technological University</span>
+      <span>Confidential — Internal Use Only</span>
+    </div>`;
+
+  window.print();
+}
+
+/* ── Mobile sidebar ─────────────────────────────────────── */
+function toggleMobileSidebar() {
+  document.getElementById("sidebar").classList.toggle("mob-open");
+  document.getElementById("sidebar-overlay").classList.toggle("show");
+}
+function closeMobileSidebar() {
+  document.getElementById("sidebar").classList.remove("mob-open");
+  document.getElementById("sidebar-overlay").classList.remove("show");
+}
+
+/* ── Milestone table ─────────────────────────────────────── */
+async function renderMilestoneTable() {
+  const tbody = document.getElementById("milestone-tbody");
+  tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px"><div class="spinner"></div></td></tr>`;
+  // Load a subset in demo mode, or all from API
+  const active = STATE.startups.filter(s => s.band !== "low").slice(0, 20);
+  const rows   = await Promise.all(active.map(s => api({ action:"get", name:s.sheet })));
+  tbody.innerHTML = rows.map(r => {
+    const ms = r.milestones || [];
+    return `<tr>
+      <td style="font-weight:600;color:var(--navy);white-space:nowrap;cursor:pointer" onclick="openDetail('${r.sheet?.replace(/'/g,"\\'")}')">${r.data?.["Startup Name"]||r.sheet}</td>
+      ${ms.map(m => `<td style="font-size:11px;max-width:120px">${m.value
+        ? `<span style="color:#1a1a2e">${m.value.substring(0,60)}${m.value.length>60?"…":""}</span>`
+        : `<span style="color:var(--muted)">—</span>`}</td>`).join("")}
+    </tr>`;
+  }).join("");
+}
+
+/* ── File viewer ─────────────────────────────────────────── */
+function populateFileStartups() {
+  document.getElementById("fv-startup").addEventListener("change", async function() {
+    const name = this.value;
+    if (!name) { document.getElementById("file-list").innerHTML = ""; document.getElementById("fv-count").textContent = ""; return; }
+    document.getElementById("file-list").innerHTML = `<div style="padding:20px;text-align:center"><div class="spinner"></div></div>`;
+    const res = await api({ action:"get", name });
+    renderFileList(res.categories || {}, res.driveFolderId || "");
+  });
+}
+
+function renderFileList(cats, driveFolderId) {
+  const container = document.getElementById("file-list");
+  const total = DOC_CATEGORIES.reduce((n, c) => n + (cats[c]||[]).length, 0);
+  document.getElementById("fv-count").textContent = `${total} file(s)`;
+
+  const fvType = document.getElementById("fv-type").value;
+
+  container.innerHTML = DOC_CATEGORIES.map(cat => {
+    let files = cats[cat] || [];
+    if (fvType) files = files.filter(f => f.fileType === fvType);
+    return `<div class="doc-category">
+      <div class="doc-cat-hdr">
+        <span class="doc-cat-icon">${CAT_ICONS[cat]||"📁"}</span>
+        <span>${cat}</span>
+        <span class="doc-cat-count">${files.length}</span>
+      </div>
+      ${files.length
+        ? files.map(f => `
+            <div class="file-card" onclick="showFilePreview('${f.driveId}','${f.fileName}','${f.fileType}')">
+              <div class="file-icon">${{pdf:"📄",docx:"📝",pptx:"📊",xlsx:"📈",image:"🖼"}[f.fileType]||"📁"}</div>
+              <div class="file-info">
+                <div class="file-name">${f.fileName}</div>
+                <div class="file-type">${(f.fileType||"").toUpperCase()} · Click to preview</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" style="margin-left:auto;flex-shrink:0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </div>`).join("")
+        : `<div class="doc-empty">No file in this category</div>`
+      }
+    </div>`;
+  }).join("") + (driveFolderId ? `
+    <div style="margin-top:4px;padding:10px 14px;background:var(--vl);border-radius:8px;font-size:12px">
+      📂 <a href="https://drive.google.com/drive/folders/${driveFolderId}" target="_blank"
+         style="color:var(--blue);font-weight:500">Open Drive folder ↗</a>
+    </div>` : "");
+}
+
+// Re-filter when type changes
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("fv-type").addEventListener("change", () => {
+    const sel = document.getElementById("fv-startup");
+    if (sel.value) sel.dispatchEvent(new Event("change"));
+  });
+});
+
+function showFilePreview(driveId, fileName, fileType) {
+  const con = document.getElementById("file-preview-container");
+  document.getElementById("preview-filename").textContent = fileName;
+  let src;
+  if (fileType === "pdf") {
+    src = `https://drive.google.com/file/d/${driveId}/preview`;
+  } else {
+    src = `https://docs.google.com/viewer?url=https://drive.google.com/uc?id=${driveId}&embedded=true`;
+  }
+  document.getElementById("file-iframe").src = src;
+  con.style.display = "block";
+  con.scrollIntoView({ behavior:"smooth" });
+}
+
+document.getElementById("close-preview").onclick = () => {
+  document.getElementById("file-preview-container").style.display = "none";
+  document.getElementById("file-iframe").src = "";
+};
+
+/* ── Admin ───────────────────────────────────────────────── */
+const FIELD_SECTIONS = {
+  "Basic Info": [
+    ["Startup Name","Startup Name"],
+    ["Incubation Date ","Incubation Date"],
+    ["Legal Status (Pvt Ltd / LLP/ Proprietorship)","Legal Status"],
+    ["DPIIT Registration ","DPIIT Registration"],
+    ["Sector / Domain","Sector / Domain"],
+    ["Start-up Type (Physical / Virtual )","Startup Type"],
+    ["Incubatee Type (Student / Faculty / Researcher / Alumni / External)","Incubatee Type"],
+    ["Website","Website"],
+    ["LinkedIn","LinkedIn"],
+  ],
+  "Description": [
+    ["Company Description","Company Description"],
+    ["Product Lines","Product Lines"],
+  ],
+  "Founders": [
+    ["Founder / Co-founder names","Founder Names"],
+    ["Education Qualification","Education"],
+    ["Expertise","Expertise"],
+    ["Experience","Experience"],
+    ["Contact Details : Email / Phone","Contact"],
+    ["Women Supported Start-up (Y/N)","Women-Led?"],
+    ["Core Team Details ","Core Team"],
+    ["Mentor ","Mentor"],
+  ],
+  "Business": [
+    ["Scheme","Scheme"],
+    ["Product Name","Product Name"],
+    ["Product stage ","Product Stage"],
+    ["Number of products","No. of Products"],
+    ["Patent filed/ Patent granted","Patent/IP"],
+    ["Trademark filed/granted","Trademark"],
+    ["Collaborations/Partnerships","Collaborations"],
+    ["Employment generated","Employment"],
+    ["Number of Customers and name ","Customers"],
+    ["Revenue Generated (in lakhs)","Revenue (₹ Lakhs)"],
+    ["Valuation as on May 2026","Valuation"],
+  ],
+  "Financials": [
+    ["Sanctioned","Sanctioned"],
+    ["Disbursed ","Disbursed"],
+    ["UC Amount ","UC Amount"],
+    ["Govt","Govt Funding"],
+    ["Loan","Loan"],
+    ["Angel ","Angel Funding"],
+    ["VC","VC Funding"],
+  ],
+  "Other": [
+    ["Awards & Recognition","Awards"],
+    ["Success Stories","Success Stories"],
+    ["Impact Created","Impact Created"],
+    ["Remarks","Remarks"],
+  ],
+};
+
+async function adminLogin() {
+  const pw  = document.getElementById("admin-pw").value.trim();
+  if (!pw) return;
+
+  if (CONFIG.DEMO_MODE) {
+    STATE.adminToken = "demo_admin";
+    localStorage.setItem(ADMIN_KEY, "demo_admin");
+    showAdminPanel();
+    return;
+  }
+
+  try {
+    const res = await fetch(CONFIG.GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({ action:"adminLogin", password: pw }),
+    }).then(r => r.json());
+
+    if (res.ok && res.token) {
+      STATE.adminToken = res.token;
+      localStorage.setItem(ADMIN_KEY, res.token);
+      showAdminPanel();
+    } else {
+      showToast(friendlyError(res.error || "Incorrect admin password"), "error");
+    }
+  } catch(e) {
+    showToast(friendlyError("network"), "error");
+  }
+}
+
+function showAdminPanel() {
+  document.getElementById("admin-gate").style.display  = "none";
+  document.getElementById("admin-panel").style.display = "block";
+}
+
+function adminLogout() {
+  const tok = STATE.adminToken || localStorage.getItem(ADMIN_KEY);
+  if (!CONFIG.DEMO_MODE && tok) apiPost({ action:"logout", token:tok }).catch(()=>{});
+  STATE.adminToken = null;
+  localStorage.removeItem(ADMIN_KEY);
+  document.getElementById("admin-gate").style.display  = "block";
+  document.getElementById("admin-panel").style.display = "none";
+  document.getElementById("admin-pw").value = "";
+}
+
+async function loadAdminStartup() {
+  const name = document.getElementById("admin-startup-sel").value;
+  if (!name) { document.getElementById("admin-fields-container").style.display="none"; return; }
+  document.getElementById("add-file-btn").disabled = false;
+
+  const d   = await api({ action:"get", name });
+  const data= d.data || {};
+  const con = document.getElementById("admin-fields-container");
+  const grd = document.getElementById("admin-fields-grid");
+  con.style.display = "block";
+  grd.innerHTML = "";
+
+  Object.entries(FIELD_SECTIONS).forEach(([section, fields]) => {
+    const title = document.createElement("div");
+    title.className = "admin-section-title"; title.textContent = section;
+    grd.appendChild(title);
+    fields.forEach(([key, label]) => {
+      const div = document.createElement("div");
+      div.className = "field-editor";
+      const isLong = ["Company Description","Remarks","Success Stories","Impact Created"].includes(label);
+      div.innerHTML = `
+        <div class="fe-label">${label}</div>
+        ${isLong
+          ? `<textarea class="fe-input" id="fe-${CSS.escape(key)}" rows="3">${data[key]||""}</textarea>`
+          : `<input class="fe-input" id="fe-${CSS.escape(key)}" value="${(data[key]||"").replace(/"/g,"&quot;")}">`
+        }
+        <button class="fe-save" onclick="saveField('${name.replace(/'/g,"\\'")}','${key.replace(/'/g,"\\'")}')">Save</button>`;
+      grd.appendChild(div);
+    });
+  });
+}
+
+async function saveField(startup, field) {
+  const el    = document.getElementById("fe-" + CSS.escape(field));
+  const value = el?.value || "";
+  const res   = await apiPost({ action:"update", startup, field, value });
+  showToast(res.ok !== false ? `Saved — <em>${field.substring(0,30)}</em>` : friendlyError(res.error), res.ok === false ? "error" : "success");
+}
+
+function showAddStartup() {
+  document.getElementById("add-startup-form").style.display = "block";
+}
+
+async function createStartup() {
+  const name = document.getElementById("new-startup-name").value.trim();
+  if (!name) return;
+  const res  = await apiPost({ action:"addStartup", startup:name });
+  if (res.ok !== false) {
+    showToast("Startup created: " + name);
+    document.getElementById("add-startup-form").style.display = "none";
+    await loadPortfolio();
+  } else {
+    showToast(friendlyError(res.error), "error");
+  }
+}
+
+function showAddFile() {
+  document.getElementById("add-file-form").style.display = "block";
+}
+
+async function submitAddFile() {
+  const startup  = document.getElementById("admin-startup-sel").value;
+  const category = document.getElementById("af-category").value;
+  const fileName = document.getElementById("af-name").value.trim();
+  const driveId  = document.getElementById("af-id").value.trim();
+  const fileType = document.getElementById("af-type").value;
+  if (!startup || !fileName || !driveId) { showToast("Fill all file fields", true); return; }
+  const res = await apiPost({ action:"addFile", startup, category, fileName, driveId, fileType });
+  showToast(res.ok !== false ? "File linked ✓" : friendlyError(res.error), res.ok === false ? "error" : "success");
+  if (res.ok !== false) document.getElementById("add-file-form").style.display = "none";
+}
+
+async function rebuildMaster() {
+  const res = await apiPost({ action:"rebuildMaster" });
+  showToast(res.ok !== false ? "Master sheet rebuilt ✓" : friendlyError(res.error), res.ok === false ? "error" : "success");
+}
+
+/* ── Toast ───────────────────────────────────────────────── */
+let toastTimer;
+
+// type: "success" | "error" | "warn" | "info"
+function showToast(msg, typeOrBool = false) {
+  const isError = typeOrBool === true || typeOrBool === "error";
+  const type    = typeOrBool === true ? "error"
+                : typeOrBool === false ? "success"
+                : typeOrBool;
+
+  const icons   = { success:"✓", error:"✕", warn:"⚠", info:"ℹ" };
+  const titles  = { success:"Done", error:"Error", warn:"Warning", info:"Info" };
+  const icon    = icons[type]  || "✓";
+  const title   = titles[type] || "";
+  const cls     = type === "error" ? " error" : type === "warn" ? " warn" : "";
+
+  const t = document.getElementById("toast");
+  t.innerHTML = `<span class="toast-icon">${icon}</span>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>`;
+  t.className = `toast show${cls}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = "toast"; }, type === "error" ? 5000 : 3000);
+}
+
+// Friendly labels for known GAS error patterns
+function friendlyError(raw) {
+  if (!raw) return "Something went wrong. Please try again.";
+  const s = String(raw).toLowerCase();
+  if (s.includes("token") || s.includes("session") || s.includes("unauthori"))
+    return "Session expired — please log in again.";
+  if (s.includes("not found") || s.includes("no sheet"))
+    return "Startup data not found in the sheet.";
+  if (s.includes("quota") || s.includes("rate limit") || s.includes("429"))
+    return "Google Sheets quota reached. Wait a moment and retry.";
+  if (s.includes("network") || s.includes("failed to fetch") || s.includes("networkerror"))
+    return "Network error — check your connection and retry.";
+  if (s.includes("permission") || s.includes("403"))
+    return "Permission denied — the sheet may not be shared with the service account.";
+  if (s.includes("timeout") || s.includes("deadline"))
+    return "The request timed out. Google Apps Script may be busy.";
+  if (s.includes("script") || s.includes("500") || s.includes("execution"))
+    return "Server script error. Check the GAS deployment and try again.";
+  return "An unexpected error occurred. Please try again.";
+}
+</script>
+</body>
+</html>
