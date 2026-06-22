@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RHC EE Lab — Startup Portfolio</title>
+<title>KLE-CTIE · Startup Portfolio</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -49,12 +49,26 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   background-image:linear-gradient(rgba(201,168,76,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.04) 1px,transparent 1px);
   background-size:40px 40px
 }
-.logo{padding:22px 18px 18px;border-bottom:1px solid rgba(201,168,76,.15)}
-.logo-eyebrow{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;font-family:'Outfit',sans-serif}
-.logo-name{font-family:'Cormorant Garamond',serif;color:#fff;font-size:22px;font-weight:600;line-height:1.1}
+.logo{padding:18px 16px 14px;border-bottom:1px solid rgba(201,168,76,.15)}
+.logo-top{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.logo-img{width:40px;height:40px;border-radius:8px;object-fit:contain;background:rgba(255,255,255,.08);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.logo-img img{width:38px;height:38px;border-radius:6px;object-fit:contain}
+.logo-img-placeholder{width:38px;height:38px;border-radius:6px;background:rgba(201,168,76,.15);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--gold)}
+.logo-text{}
+.logo-eyebrow{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:2px;font-family:'Outfit',sans-serif}
+.logo-name{font-family:'Cormorant Garamond',serif;color:#fff;font-size:20px;font-weight:600;line-height:1.1}
 .logo-name span{color:var(--gold);font-style:italic}
-.logo-sub{color:rgba(255,255,255,.35);font-size:10px;margin-top:3px;letter-spacing:.04em}
-.gold-rule{height:2px;background:linear-gradient(to right,var(--gold),var(--gold-l),transparent);border-radius:2px;margin-top:12px;max-width:120px}
+.logo-sub{color:rgba(255,255,255,.35);font-size:9.5px;margin-top:2px;letter-spacing:.03em;line-height:1.4}
+.gold-rule{height:2px;background:linear-gradient(to right,var(--gold),var(--gold-l),transparent);border-radius:2px;margin-top:10px;max-width:120px}
+/* Sidebar footer — sticky to bottom of sidebar */
+.sidebar-footer{padding:10px 14px 14px;border-top:1px solid rgba(201,168,76,.12);margin-top:auto;flex-shrink:0}
+/* Main area bottom footer */
+#main-footer{flex-shrink:0;padding:7px 24px;border-top:1px solid var(--border);background:rgba(240,236,224,.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mf-addr{font-size:9px;color:var(--muted);letter-spacing:.02em;line-height:1.5}
+.mf-addr strong{color:var(--navy);font-weight:600}
+.mf-made{font-size:9px;color:var(--muted);white-space:nowrap;letter-spacing:.03em;flex-shrink:0}
+.mf-made .heart{color:#e74c3c;display:inline-block;animation:heartbeat 1.2s ease-in-out infinite}
+@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.3)}28%{transform:scale(1)}42%{transform:scale(1.2)}70%{transform:scale(1)}}
 .nav{padding:14px 10px;flex:1;overflow-y:auto}
 .nav-section{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);padding:12px 8px 4px;font-weight:600;font-family:'JetBrains Mono',monospace}
 .nav-item{
@@ -67,7 +81,6 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 .nav-item:hover svg{opacity:1}
 .nav-item.active{background:rgba(201,168,76,.18);color:var(--gold);border-left:2px solid var(--gold)}
 .nav-item.active svg{opacity:1}
-.sidebar-footer{padding:10px;border-top:1px solid rgba(201,168,76,.12)}
 
 /* ── Main ─────────────────────────────────────────────────── */
 #main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
@@ -265,6 +278,12 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 .vg-eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;font-family:'JetBrains Mono',monospace}
 .vg-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);margin-bottom:4px}
 .vg-sub{font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+/* Login screen fixed bottom footer */
+.vg-screen-footer{position:fixed;bottom:0;left:0;right:0;padding:8px 20px;background:rgba(13,27,62,.92);backdrop-filter:blur(6px);border-top:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:10001}
+.vg-screen-addr{font-size:9px;color:rgba(255,255,255,.38);letter-spacing:.02em;line-height:1.5}
+.vg-screen-addr strong{color:rgba(255,255,255,.6);font-weight:600}
+.vg-screen-made{font-size:9px;color:rgba(255,255,255,.3);white-space:nowrap;letter-spacing:.03em;flex-shrink:0}
+.vg-screen-made .heart{color:#e74c3c;display:inline-block;animation:heartbeat 1.2s ease-in-out infinite}
 .vg-label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;
   letter-spacing:.08em;color:var(--muted);text-align:left;margin-bottom:6px}
 .vg-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
@@ -367,7 +386,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 @media print{
   body{display:block;background:#fff!important;font-family:'Outfit',sans-serif}
   #sidebar,#topbar,#overlay,.dp-tabs,.export-btn,#viewer-gate,#loading-screen,
-  .sidebar-footer,#detail-panel .dp-close{display:none!important}
+  .sidebar-footer,#main-footer,#detail-panel .dp-close{display:none!important}
   #main{margin-left:0}
   #content{overflow:visible;height:auto;padding:0}
   .page{display:none!important}
@@ -462,8 +481,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
 <!-- ── Loading screen ───────────────────────────────────── -->
 <div id="loading-screen" style="display:none">
-  <div class="ls-logo">RHC <span>EE Lab</span></div>
-  <div class="ls-sub">KLE-CTiE · Startup Portfolio</div>
+  <div class="ls-logo">KLE-CTIE <span>TBI</span></div>
+  <div class="ls-sub">KLE Technological University · Startup Portfolio</div>
   <div class="ls-bar-track"><div class="ls-bar-fill"></div></div>
   <div class="ls-msg">Loading portfolio data…</div>
 </div>
@@ -471,12 +490,11 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 <!-- ── Viewer login gate ────────────────────────────────── -->
 <div id="viewer-gate">
   <div class="vg-card">
-    <div class="vg-logo">
+    <div class="vg-logo" id="vg-logo-wrap">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     </div>
-    <div class="vg-eyebrow">KLE-CTiE · EE Lab · May 2026</div>
-    <div class="vg-title">RHC Portfolio</div>
-    <div class="vg-sub">Startup Health Monitor<br><span style="font-size:11px;color:var(--muted)">Restricted access — authorised personnel only</span></div>
+    <div class="vg-title">KLE-CTIE TBI</div>
+    <div class="vg-sub">KLE Technological University<br><span style="font-size:11px;color:var(--muted)">Restricted access — authorised personnel only</span></div>
     <label class="vg-label">Access Password</label>
     <input class="vg-input" type="password" id="viewer-pw" placeholder="Enter portal password"
       onkeydown="if(event.key==='Enter')viewerLogin()">
@@ -484,6 +502,10 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="vg-err" id="vg-err">Incorrect password. Please try again.</div>
     <hr class="vg-divider">
     <div class="vg-hint">For admin access use the Admin Panel inside the portal.<br>Contact incubation manager for credentials.</div>
+  </div>
+  <div class="vg-screen-footer">
+    <div class="vg-screen-addr"><strong>KLE-CTIE TBI</strong> &nbsp;·&nbsp; Ground Floor, Tech Park, CTIE Building &nbsp;·&nbsp; KLE Technological University, BVBCET Campus &nbsp;·&nbsp; Vidyanagar · Hubballi – 580021 · Karnataka, India</div>
+    <div class="vg-screen-made">Made with <span class="heart">❤</span> ~rhc · EE Lab, KLE-CTIE</div>
   </div>
 </div>
 
@@ -496,9 +518,16 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 <!-- ── Sidebar ──────────────────────────────────────────── -->
 <nav id="sidebar" aria-label="Main navigation">
   <div class="logo">
-    <div class="logo-eyebrow">KLE-CTiE · EE Lab</div>
-    <div class="logo-name">RHC <span>Portfolio</span></div>
-    <div class="logo-sub">Startup Health Monitor</div>
+    <div class="logo-top">
+      <div class="logo-img" id="logo-img-wrap">
+        <div class="logo-img-placeholder" id="logo-placeholder">KLE</div>
+      </div>
+      <div class="logo-text">
+        <div class="logo-eyebrow">Startup Portfolio Monitor</div>
+        <div class="logo-name">KLE-CTIE <span>TBI</span></div>
+        <div class="logo-sub">KLE Technological University</div>
+      </div>
+    </div>
     <div class="gold-rule"></div>
   </div>
   <div class="nav">
@@ -847,6 +876,12 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     </div>
 
   </div><!-- /content -->
+
+  <!-- ── Main area sticky footer ─────────────────────────── -->
+  <footer id="main-footer">
+    <div class="mf-addr"><strong>KLE-CTIE TBI</strong> &nbsp;·&nbsp; Ground Floor, Tech Park, CTIE Building &nbsp;·&nbsp; KLE Technological University, BVBCET Campus &nbsp;·&nbsp; Vidyanagar · Hubballi – 580021 · Karnataka, India</div>
+    <div class="mf-made">Made with <span class="heart">❤</span> ~rhc · EE Lab, KLE-CTIE</div>
+  </footer>
 </div><!-- /main -->
 
 <!-- ── Startup detail panel ──────────────────────────────── -->
@@ -888,9 +923,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 <script>
 /* ── Config ──────────────────────────────────────────────── */
 const CONFIG = {
-  GAS_URL   : "https://script.google.com/macros/s/AKfycbzbPk6R4VZsi2iU9TO5yG0WaPku9UjWmQpmcFR34X7j0oXc4dYRKpGejJFqqqRnd32p/exec",  // ← paste your deployed GAS URL
-  DEMO_MODE : false,   // set false once GAS is connected
-  LOGO_DRIVE_ID : "1iAb5PH3CKSHESopoFGPCuW85Mkb7X26z",     // 
+  GAS_URL       : "YOUR_GAS_WEB_APP_URL_HERE",  // ← paste your deployed GAS URL
+  DEMO_MODE     : true,   // set false once GAS is connected
+  LOGO_DRIVE_ID : "",     // ← paste KLE-CTIE logo Google Drive file ID here
 };
 const DOC_CATEGORIES = [
   "Pitch Deck",
@@ -1104,7 +1139,7 @@ function apiDemo(params) {
           "Sanctioned": "₹15 Lakhs",
           "Disbursed " : s.disbursed ? `₹${(s.disbursed/100000).toFixed(1)} Lakhs` : "—",
           "UC Amount " : s.ucFiled  ? `₹${(s.ucFiled/100000).toFixed(1)} Lakhs`   : "—",
-          "Company Description": `${s.name} is a technology-driven startup incubated at KLE-CTiE, focused on ${s.sector}. The startup is making significant progress in its domain with a clear go-to-market strategy.`,
+          "Company Description": `${s.name} is a technology-driven startup incubated at KLE-CTIE TBI, focused on ${s.sector}. The startup is making significant progress in its domain with a clear go-to-market strategy.`,
         },
         milestones: MILESTONE_KEYS.map((k,i) => ({
           quarter: ["Apr–Jun 24","Jul–Sep 24","Oct–Dec 24","Jan–Mar 25","Apr–Jun 25","Jul–Sep 25","Oct–Dec 25","Jan–Mar 26","Apr–Jun 26"][i],
@@ -1187,7 +1222,37 @@ window.addEventListener("DOMContentLoaded", () => {
   // Otherwise viewer gate stays visible — viewerLogin() handles it
 });
 
+function loadLogo() {
+  const id = CONFIG.LOGO_DRIVE_ID && CONFIG.LOGO_DRIVE_ID.trim();
+  if (!id) return;
+  const src = `https://drive.google.com/thumbnail?id=${id}&sz=w80`;
+
+  // Sidebar logo
+  const wrap = document.getElementById("logo-img-wrap");
+  const placeholder = document.getElementById("logo-placeholder");
+  if (wrap) {
+    const img = document.createElement("img");
+    img.alt = "KLE-CTIE Logo";
+    img.style.cssText = "width:38px;height:38px;border-radius:6px;object-fit:contain";
+    img.src = src;
+    img.onload  = () => { if (placeholder) placeholder.remove(); wrap.appendChild(img); };
+    img.onerror = () => {};
+  }
+
+  // Login card logo — replace shield SVG with actual logo
+  const vgWrap = document.getElementById("vg-logo-wrap");
+  if (vgWrap) {
+    const img2 = document.createElement("img");
+    img2.alt = "KLE-CTIE Logo";
+    img2.style.cssText = "width:52px;height:52px;border-radius:12px;object-fit:contain";
+    img2.src = src;
+    img2.onload  = () => { vgWrap.innerHTML = ""; vgWrap.appendChild(img2); };
+    img2.onerror = () => {};
+  }
+}
+
 async function initPortal() {
+  loadLogo();
   // Show loading screen while data fetches
   const ls = document.getElementById("loading-screen");
   if (ls) { ls.style.display = "flex"; ls.classList.remove("hidden"); }
@@ -1640,7 +1705,7 @@ function renderDpTab(tab) {
 
       const SOURCE_COLOR = {
         "MeitY"       : "#DEEAF1",
-        "KLE-CTiE TBI": "#E2EFDA",
+        "KLE-CTIE TBI": "#E2EFDA",
         "NIDHI SSS"   : "#FCE4D6",
         "SISFS"       : "#F3E8FF",
       };
@@ -2042,7 +2107,7 @@ function printStartupProfile() {
     <div class="print-header">
       <div style="display:flex;justify-content:space-between;align-items:flex-end">
         <div>
-          <div style="font-size:11px;color:#c9a84c;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">KLE-CTiE · EE Lab · RHC Portfolio</div>
+          <div style="font-size:11px;color:#c9a84c;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">KLE-CTIE TBI · Startup Portfolio</div>
           <h1 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#0d1b3e;margin-bottom:4px">${name}</h1>
           <p style="color:#6b7a99;font-size:12px">${data["Sector / Domain"]||""} · ${data["Scheme"]||""}</p>
         </div>
@@ -2078,7 +2143,7 @@ function printStartupProfile() {
     </div>
 
     <div style="margin-top:32px;padding-top:12px;border-top:1px solid #eee;font-size:10px;color:#aaa;display:flex;justify-content:space-between">
-      <span>RHC EE Lab · KLE-CTiE · KLE Technological University</span>
+      <span>KLE-CTIE TBI · KLE Technological University · Hubballi</span>
       <span>Confidential — Internal Use Only</span>
     </div>`;
 
